@@ -2,13 +2,14 @@ import numpy as np
 from enum import Enum
 
 
-class Board:
+class GameState(Enum):
+    INCOMPLETE = 0
+    DRAW = 1
+    O = 2
+    X = 3
 
-    class GameState(Enum):
-        INCOMPLETE = auto()
-        DRAWN = auto()
-        O = 2
-        X = 3
+
+class Board:
 
     def __init__(self) -> None:
         """
@@ -36,12 +37,15 @@ class Board:
         Returns a string representing the state of the board at a given time.
         """
         state = np.ndarray.flatten(self.board)
+        for i in range(len(state)):
+            if state[i] == None:
+                state[i] == i
         # horizontal separator
-        sep = "----+----+----"
+        sep = "---+---+---"
         row = " {} | {} | {} "
         # create a formatted string without the tile values filled in
         unfilled = "\n".join([row, sep] * 2 + [row])
-        return unfilled.format(*map(_rep_tile, state))
+        return unfilled.format(*list(map(Board._rep_tile, state)))
 
     def _is_won(self) -> bool:
         """
@@ -81,6 +85,8 @@ class Board:
             self.board[cell] = self.turn
             self.turn = not self.turn
             if self._is_won():
-                self.result = GameState.O if
+                self.result = GameState.X if self.turn else GameState.O
+            if self.turns_played == 9:
+                self.result = GameState.DRAW
             return True
         return False
