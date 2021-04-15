@@ -20,9 +20,10 @@ class Board:
         # size of each board (usually 3 x 3)
         self.board_size = size
         # full big board
-        self.board = np.zeros((self.board_num * self.board_size,self.board_num * self.board_size))
+        self.board = np.zeros(
+            (self.board_num * self.board_size, self.board_num * self.board_size))
         # keeps track of which boards are won and by who
-        self.won_boards = np.zeros((self.board_num,self.board_num))
+        self.won_boards = np.zeros((self.board_num, self.board_num))
         # X is 1, O is -1
         self.turn = 1
         # keeps track of how many turns have passed
@@ -56,14 +57,15 @@ class Board:
         board_rep = vfunc(self.board)
         flat_board = np.ndarray.flatten(board_rep)
 
-        unfilled = "\n".join([row * multiplier, sep * multiplier] * (multiplier - 1) + [row * multiplier])
+        unfilled = "\n".join([row * multiplier, sep * multiplier]
+                             * (multiplier - 1) + [row * multiplier])
         return unfilled.format(*list(flat_board))
 
-    def board_won(self, board_tuple=(0,0), win=False) -> int:
+    def board_won(self, board_tuple=(0, 0), win=False) -> int:
         """
         Check if a board was won and returns who won it
         """
-        won_num = self.board_size
+        won_num = self.board_size~
         board = self.get_board(board_tuple)
         if win:
             board = self.won_boards
@@ -80,11 +82,11 @@ class Board:
         if np.abs(col_array)[max_idx] == won_num:
             return np.sign(col_array[max_idx])
 
-        # check dags
+        # check diags
         diag_lr = np.trace(board)
         if diag_lr == won_num:
             return np.sign(diag_lr)
-        
+
         diag_rl = np.trace(np.rot90(board))
         if diag_rl == won_num:
             return np.sign(diag_rl)
@@ -96,8 +98,9 @@ class Board:
         First, see if the board at the given board_tuple has been won
         Then, return if someone has won the entire game
         """
-        self.won_boards[board_tuple[0], board_tuple[1]] = self.board_won(board_tuple)
-        
+        self.won_boards[board_tuple[0], board_tuple[1]
+                        ] = self.board_won(board_tuple)
+
         if self.board_num == 1:
             return self.won_boards[0][0]
         else:
@@ -109,13 +112,9 @@ class Board:
         """
         return np.all(self.board)
 
-    def next_turn(self):
-        if self.turn == 1:
-            self.turn = -1
-        else:
-            self.turn = 1
+    def next_turn(self): self.turn *= -1
 
-    def availible_moves(self, board_tuple):
+    def available_moves(self, board_tuple):
         """
         Return all availible moves, considering that the last move directed you to the board specified by board_tuple
         """
@@ -129,21 +128,23 @@ class Board:
 
         Parameter cell: tuple of tuples specifying the coordinates of the board and the loaction on the board
         """
-
+        # extract global and local position coordinates
+        global_x, global_y = cell[0][0], cell[0][1]
+        loc_x, loc_y = cell[1][0], cell[1][1]
         board_tuple = cell[0]
         location_tuple = cell[1]
-        (x,y) = self.get_index(board_tuple, location_tuple)
+        (x, y) = self.get_index(board_tuple, location_tuple)
 
-        if self.won_boards[board_tuple[0], board_tuple[1]] == 0 and self.board[x,y] == 0:
-            self.board[x,y] = self.turn
-        
+        if self.won_boards[global_x, global_y] == 0 and self.board[x, y] == 0:
+            self.board[x, y] = self.turn
+
             result = self.check_win(board_tuple)
             self.result = GameState(result)
             if result == 0 and self.full():
                 self.result = GameState(-2)
 
             self.next_turn()
-            
+
             return True
         else:
             return False
