@@ -1,15 +1,19 @@
 
 # Basic setup
 import numpy as np
+import re
 from board import Board, GameState
 
+def parse_input(str):
+    parsed = re.findall("[0-9]+", str)
+    return ((int(parsed[0]), int(parsed[1])), (int(parsed[2]), int(parsed[3])))
 
 def main():
-    game = Board()
+    game = Board(ultimate=False)
     while game.get_winner() == GameState.INCOMPLETE:
         print(game.draw_board())
-        move = int(input("Move: ")) + 1
-        game.move((move // 3, move % 3))
+        move = parse_input(input("Move: "))
+        game.move(move)
     print(game.get_winner())
     if input("Play again (y/n)? ") == "y":
         main()
