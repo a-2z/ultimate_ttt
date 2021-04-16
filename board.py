@@ -40,10 +40,23 @@ class Board:
         return "X" if tile == 1 else "O"
 
     def get_index(self, board_tuple, location_tuple):
-        return (board_tuple[0] * self.board_num + location_tuple[0], board_tuple[1] * self.board_num + location_tuple[1])
+
+        return (board_tuple[0] * self.board_num + location_tuple[0],
+                board_tuple[1] * self.board_num + location_tuple[1])
 
     def get_board(self, board_tuple):
-        return self.board[board_tuple[0] * self.board_num: board_tuple[0] * self.board_num + self.board_size, board_tuple[1] * self.board_num: board_tuple[1] * self.board_num + self.board_size]
+        """
+        return the slice of the global board corresponding to the local board
+        identified by board_tuple.
+
+        Parameter board_tuple: a coordinate in (0, 0)...(2, 2)
+        Returns: a board_size x board_size numpy array corresponding to 
+        the specified local board.
+        """
+        return self.board[board_tuple[0] * self.board_num:
+                          board_tuple[0] * self.board_num + self.board_size,
+                          board_tuple[1] * self.board_num:
+                          board_tuple[1] * self.board_num + self.board_size]
 
     def draw_board(self) -> str:
         """
@@ -65,7 +78,7 @@ class Board:
         """
         Check if a board was won and returns who won it
         """
-        won_num = self.board_size~
+        won_num = self.board_size
         board = self.get_board(board_tuple)
         if win:
             board = self.won_boards
@@ -93,6 +106,13 @@ class Board:
 
         return 0
 
+    def board_drawn(self, board_tuple):
+        """
+        Checks to see if the outcome of a local board is a draw
+        """
+        return (not self.check_win(board_won) and
+                np.all(self.get_board(board_tuple)))
+
     def check_win(self, board_tuple) -> int:
         """
         First, see if the board at the given board_tuple has been won
@@ -116,9 +136,19 @@ class Board:
 
     def available_moves(self, board_tuple):
         """
-        Return all availible moves, considering that the last move directed you to the board specified by board_tuple
+        Return all available moves, considering that the last move directed 
+        you to the board specified by board_tuple.
+
+        Returns: A list of tuples that indicate the vacant spaces on the 
+        local board.
         """
-        # TO DO
+        vacant = []
+        loc = self.get_board(board_tuple)
+        for i in range(self.board_size):
+            for j in range(self.board_size):
+                if loc[i, j]:
+
+                    # TO DO
 
     def move(self, cell) -> bool:
         """
@@ -126,7 +156,8 @@ class Board:
         Numbering starts in the top-left corner and proceeds in row-major
         order and is 0-indexed.
 
-        Parameter cell: tuple of tuples specifying the coordinates of the board and the loaction on the board
+        Parameter cell: tuple of tuples specifying the coordinates of the board 
+        and the loaction on the board.
         """
         # extract global and local position coordinates
         global_x, global_y = cell[0][0], cell[0][1]
@@ -141,8 +172,7 @@ class Board:
             result = self.check_win(board_tuple)
             self.result = GameState(result)
             if result == 0 and self.full():
-                self.result = GameState(-2)
-
+                self.result = GameState.DRAW
             self.next_turn()
 
             return True
