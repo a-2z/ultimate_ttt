@@ -3,7 +3,7 @@
 import numpy as np
 import re
 import random
-from board_tmp import UltimateTTT, State
+from board import UltimateTTT, State
 
 
 def parse_input(str):
