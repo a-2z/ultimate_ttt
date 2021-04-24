@@ -76,7 +76,7 @@ class UltimateTTT:
         self.board = np.zeros((self.board_num*self.board_size,
                                self.board_num*self.board_size))
         # properties of local boards
-        self.board_data = np.full((3, 3),
+        self.board_data = np.full((self.board_num, self.board_num),
                                   {"num_moves": 0,
                                   "outcome": State.INCOMPLETE})
         # the current player's token
@@ -97,18 +97,19 @@ class UltimateTTT:
         separators in between.
         """
         if pretty_print:
-            for row in range(self.board_size):
-                for col in range(self.board_size):
-                    local_board = self._get_board((row, col))
-                    print('\n'.join([''.join(['{:3}'.format(i) for i in r])
-                                     for r in local_board]))
-                print('---------------------------------------------------')
-            return ""
+            sep = "+---"
+            row = "| {} "
+            multiplier = self.board_size * self.board_num
+
+            vfunc = np.vectorize(self.str_token)
+            board_rep = vfunc(self.board)
+            flat_board = np.ndarray.flatten(board_rep)
+
+            unfilled = "\n".join([row * multiplier, sep * multiplier] * (multiplier - 1) + [row * multiplier])
+            return unfilled.format(*list(flat_board))
         else:
-            stringify = np.vectorize(
-                UltimateTTT.str_token, otypes=[np.ndarray])
+            stringify = np.vectorize(UltimateTTT.str_token, otypes=[np.ndarray])
             return str(stringify(self.board))
-        return str(stringify(self.board))
 
     @staticmethod
     def mark_outcome(board_string: str, outcome: int) -> str:
