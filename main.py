@@ -26,16 +26,16 @@ def main():
 def play_random():
     game = UltimateTTT()
     mov = None
-    try:
-        while game.global_outcome() == State.INCOMPLETE:
-            print(game.__str__(pretty_print=False))
-            mv = random.choice(game.available_moves())
-            mov = mv
-            print(mv)
-            game.move(mv)
-        print(game.global_outcome())
-    except:
+    print(game.__str__(pretty_print=True))
+    print(game.win_board)
+    while game.global_outcome() == State.INCOMPLETE:
+        mv = random.choice(game.available_moves())
+        mov = mv
         print(mv)
+        game.move(mv)
+        print(game.__str__(pretty_print=True))
+        print(game.win_board)
+    print(game.global_outcome())
     if input("Play again (y/n)? ") == "y":
         main()
 
