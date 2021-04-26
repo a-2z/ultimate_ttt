@@ -227,31 +227,24 @@ class UltimateTTT:
 
         won_num = self.dim
 
-        if global_coords==None:
-            print(board)
-
         # check rows
         row_array = np.sum(board, axis=0)
-        print(row_array)
         max_idx = np.argmax(np.abs(row_array))
         if np.abs(row_array)[max_idx] == won_num:
             return State(np.sign(row_array[max_idx]))
 
         # check cols
         col_array = np.sum(board, axis=1)
-        print(col_array)
         max_idx = np.argmax(np.abs(col_array))
         if np.abs(col_array)[max_idx] == won_num:
             return State(np.sign(col_array[max_idx]))
 
         # check diags
         diag_lr = np.trace(board)
-        print(diag_lr)
         if diag_lr == won_num:
             return State(np.sign(diag_lr))
 
         diag_rl = np.trace(np.rot90(board))
-        print(diag_rl)
         if diag_rl == won_num:
             return State(np.sign(diag_rl))
 
