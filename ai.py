@@ -1,6 +1,7 @@
 #tree class for state
 import numpy as np
-from board import *
+import re
+from board import UltimateTTT, State
 
 #rotation angles based on the first non-central moves
 orientations = {
@@ -31,16 +32,14 @@ class MoveNode:
         pass
 
 class Player:
-
-
-
-    def __init__(self, turn):
+    def __init__(self, turn, num_iters):
+        self.game = UltimateTTT()
+        #canonical orientations
         self.orientation_set = False
         self.rotate = True
-        #create an instance of the game
-        self.game = UltimateTTT()
-        self.decision_tree = MoveNode()
         self.rot_sin, self.rot_cos = 0, 0
+        #decision tree for AI
+        self.decision_tree = MoveNode()
 
 ####################Rotation########################### 
     def rotate(self, move):
@@ -95,12 +94,51 @@ class Player:
             self.orientation_set = True
 
 ####################Play a game###########################
-    def play(self):
-        while game.result == State.INCOMPLETE:
-            next_move = self.simulate(game.moves)
-            if rotate and not self.orientation_set:
+    def play(self, to_play = 1):
+        root = MoveNode(None)
+        while self.game.result == State.INCOMPLETE:
+            if to_play == 1:
+                print(str(self.game))
+                p_move = parse_input(input("Move: "))
+                self.game.move(p_move)
+                
+
+            next_move = self.simulate(self.game.moves)
+            if self.rotate and not self.orientation_set:
                 self.set_orientations(next_move)
-            next_move = self.rotate(next_move)
+            rot_move = self.rotate(next_move)
+            self.game.move(next_move)
+    
+    def get_p_move(self):
+
+    def parse_input(str):
+        parsed = re.findall("[0-9]+", str)
+        return ((int(parsed[0]), int(parsed[1])), (int(parsed[2]), int(parsed[3])))
+
+    def simulate(self, history):
+        """
+        Runs simulations of an ultimate Tic-Tac-Toe game for
+        num_iters and returns the move with the highest 
+        upper confidence bound.
+        """
+        root = MoveNode(history[0])
+
+# get available moves - make tree from that
+# pick random move initially - ucb all set to 0
+# keep picking random moves and expanding child nodes
+# 
+#play all moves in sequence until arrive at root
+#orientation: -90
+#0, 0, 1, 1
+#root = MoveNode(None, history[0])
+# increment n_i for root
+#self.unexplored = self.game.available_moves()
+#for i in unexplored:
+#   self.children.add(MoveNode(self, move)   
+
+#
+#
+#
             
     
 
