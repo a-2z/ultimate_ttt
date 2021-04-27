@@ -62,6 +62,11 @@ class Player:
         self.rot_sin, self.rot_cos = 0, 0
         
     def set_orientations(self, move):
+        """
+        Sets the canonical orientation of the board
+        based on the first non-center move on the board.
+
+        By rotating all moves to
         if move[0] == (1, 1):
             if move[1] == (1, 1): 
                 return
@@ -88,19 +93,4 @@ class Player:
             if rotate and not self.orientation_set:
                 self.set_orientations(next_move)
             next_move = self.rotate(next_move)
-
-
-
-"""
-x |  |             
-==========
-  |   |      ===>   
-============
-  |   |
-"""
-
-#each node is just one move
-#also store all available moves 
-#
-
 
