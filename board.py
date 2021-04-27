@@ -243,11 +243,11 @@ class UltimateTTT:
 
         # check diags
         diag_lr = np.trace(board)
-        if diag_lr == won_num:
+        if np.abs(diag_lr) == won_num:
             return State(np.sign(diag_lr))
 
         diag_rl = np.trace(np.rot90(board))
-        if diag_rl == won_num:
+        if np.abs(diag_rl) == won_num:
             return State(np.sign(diag_rl))
 
         if np.all(board) or (global_coords == None and not np.any(self.win_board == State.INCOMPLETE)):
