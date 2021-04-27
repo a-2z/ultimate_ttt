@@ -3,6 +3,7 @@
 import numpy as np
 import re
 import random
+from ai import *
 from board import UltimateTTT, State
 
 
@@ -12,55 +13,78 @@ def parse_input(str):
 
 def main():
     play_random()
-    # game = UltimateTTT()
-    # while game.global_outcome() == State.INCOMPLETE:
-    #     print(game.__str__(pretty_print=False))
-    #     move = parse_input(input("Move: "))
-    #     game.move(move)
-    # print(game.global_outcome())
-    # if input("Play again (y/n)? ") == "y":
-    #     main()
 
-def play_random():
+def get_turn():
+    """
+    Return the turn of a player based on an input
+    """
+    player_turn = 0
+    while player_turn == 0:
+        player_choice = input("X or O (enter x or o): ").lower()
+        if player_choice == 'x':
+            player_turn = 1 
+        elif player_choice == 'o':
+            player_turn = -1
+    return player_turn
+
+def play_ai():
+    #create an AI and print the original board
     game = UltimateTTT()
-    mov = None
-    print(game.__str__(pretty_print=True))
     print(game.win_board)
+    player_turn = get_turn()
+    ai = MCTS(turn=-player_turn)
+    
     while game.global_outcome() == State.INCOMPLETE:
-        mv = random.choice(game.available_moves())
-        mov = mv
-        print(mv)
-        game.move(mv)
-        print(game.__str__(pretty_print=True))
+        #get input from both the user and the AI
+        make_moves(game, ai, player_turn)
     print(game.global_outcome())
     if input("Play again (y/n)? ") == "y":
-        main()
+        play_ai()
 
-    # class TicTacToe:
-    #     def __init__(self):
-    #         """
-    #         Class constructor for a game of Ultimate Tic-Tac-Toe
-    #         """
-    #         self.empty = np.zeros((3, 3))
-    #         self.turn = True
 
-    #     def display_board(self):
-    #         """
-    #         Prints the main tic-tac-toe-board given the current game state
-    #         """
-    #         pass
+def play_random():
+    WDL = [0, 0, 0]
+    game = UltimateTTT()
+    random_turn = get_turn()
+    ai = MCTS(turn=-random_turn)
+    for _ in range(1):
+        while game.global_outcome() == State.INCOMPLETE:
+            if random_turn == 1:
+                game.move(random.choice(game.available_moves()))
+                ai_move = ai.pick_move(game)
+                game.move(ai_move)
+            elif random_turn == -1:
+                ai_move = ai.pick_move(game)
+                game.move(ai_move)
+                game.move(random.choice(game.available_moves()))
+        if game.global_outcome() == State.DRAW:
+            WDL[1] += 1
+        elif game.global_outcome().value == random_turn:
+            WDL[2] += 1
+        else:
+            WDL[0] += 1
+        game = UltimateTTT()
+    print ("AI Wins: {0}, Draws: {1}, Losses: {2}".format(*WDL))
 
-    #     def _move(self, cell: int) -> bool:
-    #         """
+def make_moves(game, ai, player_turn):
+    if player_turn == 1:
+        print(str(game))
+        legal = False
+        while not legal:
+            p_move = parse_input(input("Move: "))
+            legal = game.move(p_move)
+        print(str(game))
+        ai_move = ai.pick_move(game)
+        game.move(ai_move)
+    elif player_turn == -1:
+        print(str(game) + '\n')
+        ai_move = ai.pick_move(game)
+        game.move(ai_move)
+        print(str(game))
+        legal = False
+        while not legal:
+            p_move = parse_input(input("Move: "))
+            legal = game.move(p_move)
 
-    #         """
-    #         pass
-
-    #     def check_win():
-    #         """
-    #         Checks to see if a cell (one of the 3x3 boards) has been won.
-
-    #         Returns True if a cell has been one; otherwise
-    #         """
 if __name__ == "__main__":
     main()
