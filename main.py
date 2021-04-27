@@ -10,7 +10,6 @@ def parse_input(str):
     parsed = re.findall("[0-9]+", str)
     return ((int(parsed[0]), int(parsed[1])), (int(parsed[2]), int(parsed[3])))
 
-
 def main():
     play_random()
     # game = UltimateTTT()
@@ -21,7 +20,6 @@ def main():
     # print(game.global_outcome())
     # if input("Play again (y/n)? ") == "y":
     #     main()
-
 
 def play_random():
     game = UltimateTTT()
