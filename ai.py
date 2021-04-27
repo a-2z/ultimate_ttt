@@ -61,6 +61,7 @@ class Player:
         self.decision_tree = MoveNode()
         self.rot_sin, self.rot_cos = 0, 0
         
+        
     def set_orientations(self, move):
         """
         Sets the canonical orientation of the board
