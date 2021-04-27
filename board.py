@@ -96,13 +96,19 @@ class UltimateTTT:
         if pretty_print:
             sep = "+---"
             row = "| {} "
+            sep_clear = "+   "
+            clear = "    "
+            row_clear = "  {} "
+
             multiplier = self.dim * self.dim
 
             vfunc = np.vectorize(self._str_token)
             board_rep = vfunc(self.board)
+            board_rep = self._mark_outcome(board_rep)
+
             flat_board = self._flatten_board(board_rep)
 
-            unfilled = "\n".join([row * multiplier, sep * multiplier] * (multiplier - 1) + [row * multiplier])
+            unfilled = "\n".join(self.dim * ([multiplier * sep, self.dim * (row + (self.dim-1) * row_clear)] + (self.dim-1) * [self.dim * (sep_clear + (self.dim-1) * clear), self.dim * (row + (self.dim-1) * row_clear)]))
             return unfilled.format(*list(flat_board))
         else:
             stringify = np.vectorize(UltimateTTT.str_token, otypes=[np.ndarray])
@@ -112,7 +118,7 @@ class UltimateTTT:
         flat = np.zeros(0)
         for i in range(self.dim):
             for k in range(self.dim):
-                flat = np.concatenate((flat, board[i,:,k:]), axis=None)
+                flat = np.concatenate((flat, board[i,:,k,:]), axis=None)
 
         return flat
 
@@ -122,20 +128,16 @@ class UltimateTTT:
         """
         return _flatten_board(self.board).reshape((self.dim,self.dim))
 
-    @staticmethod
-    def mark_outcome(board_string: str, outcome: int) -> str:
-        """
-        Returns a string representing a board with an X through it or a 
-        circle around it depending on its outcome.
-        """
-        rows = board_string.split("\n")
-        width, height = len(rows)[0], len(rows)
-        if outcome == 0:
-            return board_string
-        centerx = width // 2
-        centery = height // 2
-        marker = (centerx - 1) * " " + str_token(outcome) + centerx * " "
-        return ([" "]*(centery - 1) + marker + [" "] * centery).join("\n")
+    def _mark_outcome(self, board_rep):
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if self.win_board[i,j] == State.DRAW:
+                    board_rep[i,j,:,:] = np.array([["|","-"," "],["|", " ", "]"],["|","-"," "]])
+                elif self.win_board[i,j] == State.X:
+                    board_rep[i,j,:,:] = np.array([["\\"," ","/"],[" ", "X", " "],["/"," ","\\"]])
+                elif self.win_board[i,j] == State.O:
+                    board_rep[i,j,:,:] = np.array([["/","-","\\"],["|", " ", "|"],["\\","-","/"]])
+        return board_rep
 
     @ staticmethod
     def _str_token(token: int) -> str:
