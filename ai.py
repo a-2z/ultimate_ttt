@@ -1,15 +1,16 @@
 #tree class for state
 import numpy as np
-import board
+from board import *
 
+#rotation angles based on the first non-central moves
 orientations = {
     (0, 0): np.radians(-90),
-    (0, 1): None
-    (0, 2): None
-    (1, 0): np.radians(-90)
-    (1, 2): np.radians(90)
-    (2, 0): np.radians(180)
-    (2, 1): np.radians(180)
+    (0, 1): None,
+    (0, 2): None,
+    (1, 0): np.radians(-90),
+    (1, 2): np.radians(90),
+    (2, 0): np.radians(180),
+    (2, 1): np.radians(180),
     (2, 2): np.radians(90)
 }
 
@@ -20,6 +21,8 @@ class MoveNode:
         self.moves = []
         self.ucb = 0
         self.n_i = 0
+        self.wins = 0
+        self.value = None
 
     def insert(self):
         pass 
@@ -29,6 +32,17 @@ class MoveNode:
 
 class Player:
 
+
+
+    def __init__(self, turn):
+        self.orientation_set = False
+        self.rotate = True
+        #create an instance of the game
+        self.game = UltimateTTT()
+        self.decision_tree = MoveNode()
+        self.rot_sin, self.rot_cos = 0, 0
+
+####################Rotation########################### 
     def rotate(self, move):
         """
         rotates a move given in (global_coords, local_coords)
@@ -51,23 +65,15 @@ class Player:
         new_glob = (round(glob_x_prime + 1), round(glob_y_prime + 1))
         new_loc = (round(loc_x_prime + 1), round(loc_y_prime + 1))
         return ((new_glob, new_loc))
-
-
-    def __init__(self, turn):
-        self.orientation_set = False
-        self.rotate = True
-        #create an instance of the game
-        self.game = UltimateTTT()
-        self.decision_tree = MoveNode()
-        self.rot_sin, self.rot_cos = 0, 0
-        
         
     def set_orientations(self, move):
         """
         Sets the canonical orientation of the board
         based on the first non-center move on the board.
 
-        By rotating all moves to
+        This way, variations (rotations) of the same state
+        will be combined.
+        """
         if move[0] == (1, 1):
             if move[1] == (1, 1): 
                 return
@@ -88,10 +94,13 @@ class Player:
             self.rot_cos = np.cos(angle)
             self.orientation_set = True
 
+####################Play a game###########################
     def play(self):
         while game.result == State.INCOMPLETE:
             next_move = self.simulate(game.moves)
             if rotate and not self.orientation_set:
                 self.set_orientations(next_move)
             next_move = self.rotate(next_move)
+            
+    
 
