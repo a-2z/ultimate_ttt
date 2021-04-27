@@ -68,6 +68,7 @@ class MCTS:
         #SHOULD NOT BE MODIFIED IN SIMULATIONS
         self.sim_game = None
         self.is_x = turn == 1
+        self.root = None
 
     def pick_move(self, game):
         """
@@ -80,15 +81,23 @@ class MCTS:
         #save the current game, which should never be modified during simulation
         self.root_state = game
         self.sim_game = copy.deepcopy(game)
-        root = None
-        #set the move corresponding to the root if not the first move
-        if self.sim_game.moves:
-            root = MoveNode(self.sim_game.moves[-1]) 
+        history = self.sim_game.moves
+        opp_move = None
+        #get the last move played if there is a history
+        if history: 
+            opp_move = self.sim_game.moves[-1]
+        #set root if none exists
+        if self.root == None:
+            if history:
+                self.root = MoveNode(opp_move) 
+            else:
+                self.root = MoveNode(None)
         else:
-            root = MoveNode(None)
+            self.set_root(opp_move)
+        #on subsequent simulations, root will be calculated
         candidates = self.sim_game.available_moves()
-        root.expand(candidates)
-        return self.run_sims(root)
+        self.root.expand(candidates)
+        return self.run_sims(self.root)
 
     def best_child(self, move):
         """
@@ -133,8 +142,22 @@ class MCTS:
                 #expand a node that has been simulated once
                 if next_move.n == 1:
                     next_move.expand(candidates)
-                next_move = self.best_child(next_move)
-        return self.best_child(root).move
+                try:
+                    next_move = self.best_child(next_move)
+                except:
+                    pass
+        to_play = self.best_child(root).move
+        self.set_root(to_play)
+        return to_play
+
+    def set_root(self, move):
+        """
+        Searches for a child of root corresponding to move and sets it as 
+        the root if it matches.
+        """
+        for c in self.root.children:
+            if c.move == move:
+                self.root = c
                     
     def expand(self, node, candidates):
         node.children = [MoveNode(move=c, parent=next_move) for c in candidates]
