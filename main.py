@@ -32,7 +32,6 @@ def play_random():
         print(mv)
         game.move(mv)
         print(game.__str__(pretty_print=True))
-        print(game.win_board)
     print(game.global_outcome())
     if input("Play again (y/n)? ") == "y":
         main()
