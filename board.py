@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from enum import Enum
 
 """
@@ -84,6 +85,21 @@ class UltimateTTT:
         self.next_board: tuple[int, int] = None
         # the sequence of moves played thus far
         self.moves = []
+
+    def set_state(self, reference):
+        """
+        Modifies the game state to mirror a reference state in place.
+
+        This is useful for creating copies without having to create entirely
+        new objects.
+        """
+        self.board = reference.board.copy() 
+        self.num_moves = reference.num_moves
+        self.win_board = reference.win_board.copy() 
+        self.turn = reference.turn
+        self.result = deepcopy(reference.result)
+        self.next_board = reference.next_board
+        self.moves = deepcopy(reference.moves)
 
     def __str__(self, pretty_print=True) -> str:
         """
@@ -193,8 +209,11 @@ class UltimateTTT:
             self.next_board = loc
             # track the overall move history
             self.moves.append(tile)
-            # place the appropriate token on the board
-            self.board[glob[0], glob[1], loc[0], loc[1]] = self.turn
+            # place the appropriate token on the board (if indices in range)
+            try:
+                self.board[glob[0], glob[1], loc[0], loc[1]] = self.turn
+            except:
+                return False
 
             self.num_moves[glob] += 1
             self._change_turn()
@@ -286,7 +305,6 @@ class UltimateTTT:
         Returns the list of all moves available to the player.
         """
         available = []
-
         if self.result == State.INCOMPLETE:
             for board in self.available_boards():
                 available += map(lambda tile: (board, tile),
