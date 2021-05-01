@@ -9,7 +9,7 @@ class MoveNode:
     When ancestors are taken into account, the node
     represents the history/state of a Tic-Tac-Toe game thus far.
     """
-    def __init__(self, move, parent = None, children = set(), ucb_c = 2):
+    def __init__(self, move, parent = None, children = [], ucb_c = 2):
         """
         Initializes a move node in a decision tree.
 
@@ -96,6 +96,8 @@ class MCTS:
             self.set_root(opp_move)
         #on subsequent simulations, root will be calculated
         candidates = self.sim_game.available_moves()
+        if candidates == []:
+            print("dafuq")
         self.root.expand(candidates)
         return self.run_sims(self.root)
 

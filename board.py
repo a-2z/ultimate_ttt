@@ -305,7 +305,6 @@ class UltimateTTT:
         Returns the list of all moves available to the player.
         """
         available = []
-
         if self.result == State.INCOMPLETE:
             for board in self.available_boards():
                 available += map(lambda tile: (board, tile),

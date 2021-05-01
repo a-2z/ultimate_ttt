@@ -4,6 +4,7 @@ import numpy as np
 import re
 import random
 from ai import *
+import time
 from board import UltimateTTT, State
 
 
@@ -13,6 +14,17 @@ def parse_input(str):
 
 def main():
     play_random()
+
+def random_v_random():
+    avg_time = []
+    for _ in range(10000):
+        t0 = time.time()
+        game = UltimateTTT()
+        while game.global_outcome() == State.INCOMPLETE:
+            game.move(random.choice(game.available_moves()))
+        t1 = time.time()
+        avg_time.append(t1 - t0)
+    return sum(avg_time) / len((avg_time))
 
 def get_turn():
     """
