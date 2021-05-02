@@ -326,7 +326,7 @@ class UltimateTTT:
         else:
             return False
 
-    def availible_moves_2d(self):
+    def availible_moves_4d(self):
         """
         Returns a 3x3x3x3 array where a 1 means a move can be played in that location, and a 0 means it can't
         """
@@ -357,5 +357,5 @@ class UltimateTTT:
         """
         Returns a nx4 array indicating the coordinates of all the availible moves, where n is the number of availible moves
         """
-        availible_2d = self.availible_moves_2d()
+        availible_4d = self.availible_moves_2d()
         return np.argwhere(availible_2d == 1)
