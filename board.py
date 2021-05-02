@@ -357,5 +357,5 @@ class UltimateTTT:
         """
         Returns a nx4 array indicating the coordinates of all the availible moves, where n is the number of availible moves
         """
-        availible_4d = self.availible_moves_2d()
-        return np.argwhere(availible_2d == 1)
+        availible_4d = self.availible_moves_4d()
+        return np.argwhere(availible_4d == 1)
