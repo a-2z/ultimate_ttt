@@ -347,13 +347,13 @@ class UltimateTTT:
             else:
                 # if next_board is complete, can play in any incomplete board
                 turn_to_zero = self.win_board != 0
-                
+
             # set the value for local boards we can't legally play on to zero
             availible_moves[turn_to_zero.astype(bool)] = zero_board
 
         return availible_moves
 
-    def availible_moves_list(self):
+    def availible_moves_numpy(self):
         """
         Returns a nx4 array indicating the coordinates of all the availible moves, where n is the number of availible moves
         """

@@ -103,7 +103,7 @@ def tester():
     mov = None
     print(game.__str__(pretty_print=True))
     while game.global_outcome() == State.INCOMPLETE:
-        availible_moves = game.availible_moves_list()
+        availible_moves = game.availible_moves_numpy()
         print(availible_moves)
         choice = np.random.choice(availible_moves.shape[0], 1)[0]
         mov = availible_moves[choice]
