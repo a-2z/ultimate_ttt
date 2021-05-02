@@ -72,11 +72,8 @@ class UltimateTTT:
         # set dimensions of global board and local boards (they are the same dimensions)
         self.dim = dim
         # make the game board
-        # self.board = np.zeros((self.dim ** 2, self.dim ** 2))
         self.board = np.zeros((self.dim, self.dim, self.dim, self.dim))
-        # properties of local boards
-        self.num_moves = np.zeros((self.dim, self.dim))
-        self.win_board = np.full((self.dim, self.dim), State.INCOMPLETE)                      
+        self.win_board = np.zeros((self.dim, self.dim))                     
         # the current player's token
         self.turn = 1
         # the result of the overall game
@@ -93,8 +90,7 @@ class UltimateTTT:
         This is useful for creating copies without having to create entirely
         new objects.
         """
-        self.board = reference.board.copy() 
-        self.num_moves = reference.num_moves
+        self.board = reference.board.copy()
         self.win_board = reference.win_board.copy() 
         self.turn = reference.turn
         self.result = deepcopy(reference.result)
@@ -147,11 +143,11 @@ class UltimateTTT:
     def _mark_outcome(self, board_rep):
         for i in range(self.dim):
             for j in range(self.dim):
-                if self.win_board[i,j] == State.DRAW:
+                if self.win_board[i,j] == -2:
                     board_rep[i,j,:,:] = np.array([["|","-"," "],["|", " ", "]"],["|","-"," "]])
-                elif self.win_board[i,j] == State.X:
+                elif self.win_board[i,j] == 1:
                     board_rep[i,j,:,:] = np.array([["\\"," ","/"],[" ", "X", " "],["/"," ","\\"]])
-                elif self.win_board[i,j] == State.O:
+                elif self.win_board[i,j] == -1:
                     board_rep[i,j,:,:] = np.array([["/","-","\\"],["|", " ", "|"],["\\","-","/"]])
         return board_rep
 
@@ -177,7 +173,7 @@ class UltimateTTT:
         """
         Returns the outcome of a local board.
         """
-        return self.win_board[global_coords]
+        return State(self.win_board[global_coords])
 
     def _set_local_outcome(self, global_coords, outcome) -> None:
         """
@@ -215,37 +211,30 @@ class UltimateTTT:
             except:
                 return False
 
-            self.num_moves[glob] += 1
             self._change_turn()
 
             # compute winning stuff
-            self.win_board[glob] = self._compute_winner(glob)
-            self.result = self._compute_winner()
+            self.win_board[glob] = self._compute_winner_local_board(glob)
+            self.result = State(self._compute_winner_win_board())
 
             return True
 
-    def _outcome_to_num(self, state):
-        if state == State.DRAW or state == State.INCOMPLETE:
-            return 0
-        elif state == State.X:
-            return 1
-        else:
-            return -1
-
-    def _compute_winner(self, global_coords=None) -> State:
+    def _winboard_to_computable(self):
+        """ 
+        Makes a copy of the win_board where draws are of value 0
         """
-        Computes the winner of either a local board or the overall game.
+        # make a copy because we dont want to edit the actual win_board
+        new_win_board = np.copy(self.win_board)
+        # set to 0 whereever it is a draw
+        new_win_board[self.win_board == -2] = 0
+        return new_win_board
 
-        If global_coord is None, the computation is performed for the
-        overall game. The 9x9 board will be abstracted into a 3x3 array with
-        the outcomes of each local board.
-
-        Returns the State corresponding to an outcome
+    def _compute_winner_win_board(self):
+        """ 
+        Returns the value of the state of the win board
         """
-        vfunc = np.vectorize(self._outcome_to_num)
 
-        board = vfunc(self.win_board) if global_coords == None else self.board[global_coords[0],global_coords[1],:,:]
-
+        board = self._winboard_to_computable()
         won_num = self.dim
 
         # check rows
@@ -269,21 +258,58 @@ class UltimateTTT:
         if diag_rl == won_num:
             return State(np.sign(diag_rl))
 
-        if np.all(board) or (global_coords == None and not np.any(self.win_board == State.INCOMPLETE)):
-            return State.DRAW
+        if np.all(self.win_board):
+            return -2
         else:
-            return State.INCOMPLETE
+            return 0
+
+    def _compute_winner_local_board(self, global_coords):
+        """
+        Returns the value of the state of the local board corresponding to global coordinates
+        """
+        won_num = self.dim
+        i = global_coords[0]
+        j = global_coords[1]
+
+        # check rows
+        row_array = np.sum(self.board[i,j,:,:], axis=0)
+        max_idx = np.argmax(np.abs(row_array))
+        if np.abs(row_array)[max_idx] == won_num:
+            return np.sign(row_array[max_idx])
+
+        # check cols
+        col_array = np.sum(self.board[i,j,:,:], axis=1)
+        max_idx = np.argmax(np.abs(col_array))
+        if np.abs(col_array)[max_idx] == won_num:
+            return np.sign(col_array[max_idx])
+
+        # check diags
+        diag_lr = np.trace(self.board[i,j,:,:])
+        if diag_lr == won_num:
+            return np.sign(diag_lr)
+
+        diag_rl = np.trace(np.rot90(self.board[i,j,:,:]))
+        if diag_rl == won_num:
+            return np.sign(diag_rl)
+
+        if np.all(self.board[i,j,:,:]):
+            return -2
+        else:
+            return 0
 
     def _legal_global(self, gc) -> bool:
+        """
+        Returns whether or not a local board can be played on
+        """
         if self.next_board == None:
             return True
-        elif self.win_board[gc[0],gc[1]] != State.INCOMPLETE:
+        elif self.win_board[gc[0],gc[1]] != 0:
             return False
         else:
             if gc == self.next_board:
                 return True
             else:
-                return False if self.win_board[self.next_board[0], self.next_board[1]] == State.INCOMPLETE else True
+                return False if self.win_board[self.next_board[0], self.next_board[1]] == 0 else True
 
     def _is_legal(self, move) -> bool:
         """
@@ -300,41 +326,36 @@ class UltimateTTT:
         else:
             return False
 
-    def available_moves(self):
+    def availible_moves_2d(self):
         """
-        Returns the list of all moves available to the player.
+        Returns a 3x3x3x3 array where a 1 means a move can be played in that location, and a 0 means it can't
         """
-        available = []
-        if self.result == State.INCOMPLETE:
-            for board in self.available_boards():
-                available += map(lambda tile: (board, tile),
-                                 self.available_tiles(board))
-        return available
+        
+        # all open spots on the board, not caring if a given local board can be legally played on
+        availible_moves = self.board == 0
 
-    def available_boards(self):
-        """
-        Returns a list of tuples corresponding to the coordinates of local
-        boards that can be played in on any given turn.
-        """
-        available = []
-        for i in range(self.dim):
-            for j in range(self.dim):
-                if self._legal_global((i, j)):
-                    available.append((i, j))
-        return available
+        if self.next_board != None:
+            (next_globi, next_globj) = self.next_board
+            # a 3x3 zero matrix
+            zero_board = np.zeros((self.dim, self.dim))
+            # the local boards we can't legally play on
+            turn_to_zero = np.ones((self.dim, self.dim))
 
-    def available_tiles(self, global_coords):
-        """
-        Return all of the tiles on a specific incomplete board that can be
-        moved to.
+            if self.win_board[next_globi, next_globj] == 0:
+                # if next_board is incomplete, can only play there
+                turn_to_zero[next_globi, next_globj] = 0
+            else:
+                # if next_board is complete, can play in any incomplete board
+                turn_to_zero = self.win_board != 0
+                
+            # set the value for local boards we can't legally play on to zero
+            availible_moves[turn_to_zero.astype(bool)] = zero_board
 
-        Returns: A list of tuples that indicate the vacant spaces on the
-        local board (empty if none available).
+        return availible_moves
+
+    def availible_moves_list(self):
         """
-        available = []
-        if self.win_board[global_coords] == State.INCOMPLETE:
-            for i in range(self.dim):
-                for j in range(self.dim):
-                    if self.board[global_coords[0], global_coords[1], i, j] == 0:
-                        available.append((i, j))
-        return available
+        Returns a nx4 array indicating the coordinates of all the availible moves, where n is the number of availible moves
+        """
+        availible_2d = self.availible_moves_2d()
+        return np.argwhere(availible_2d == 1)

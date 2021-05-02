@@ -13,7 +13,7 @@ def parse_input(str):
     return ((int(parsed[0]), int(parsed[1])), (int(parsed[2]), int(parsed[3])))
 
 def main():
-    play_random()
+    tester()
 
 def random_v_random():
     avg_time = []
@@ -97,6 +97,22 @@ def make_moves(game, ai, player_turn):
         while not legal:
             p_move = parse_input(input("Move: "))
             legal = game.move(p_move)
+
+def tester():
+    game = UltimateTTT()
+    mov = None
+    print(game.__str__(pretty_print=True))
+    while game.global_outcome() == State.INCOMPLETE:
+        availible_moves = game.availible_moves_list()
+        print(availible_moves)
+        choice = np.random.choice(availible_moves.shape[0], 1)[0]
+        mov = availible_moves[choice]
+        mv = ((mov[0], mov[1]), (mov[2], mov[3]))
+        game.move(mv)
+        print(game.__str__(pretty_print=True))
+    print(game.global_outcome())
+    if input("Play again (y/n)? ") == "y":
+        tester()
 
 if __name__ == "__main__":
     main()
