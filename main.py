@@ -10,10 +10,17 @@ from board import UltimateTTT, State
 
 def parse_input(str):
     parsed = re.findall("[0-9]+", str)
-    return ((int(parsed[0]), int(parsed[1])), (int(parsed[2]), int(parsed[3])))
+    return np.array([int(parsed[0]), int(parsed[1]), int(parsed[2]), int(parsed[3])])
+
+def make_random_move(game):
+    availible_moves = game.availible_moves_numpy()
+    choice = np.random.choice(availible_moves.shape[0], 1)[0]
+    mov = availible_moves[choice]
+    game.move(mov)
+    return mov
 
 def main():
-    tester()
+    play_random()
 
 def random_v_random():
     avg_time = []
@@ -21,7 +28,7 @@ def random_v_random():
         t0 = time.time()
         game = UltimateTTT()
         while game.global_outcome() == State.INCOMPLETE:
-            game.move(random.choice(game.available_moves()))
+            make_random_move(game)
         t1 = time.time()
         avg_time.append(t1 - t0)
     return sum(avg_time) / len((avg_time))
@@ -61,14 +68,15 @@ def play_random():
     ai = MCTS(turn=-random_turn)
     for _ in range(1):
         while game.global_outcome() == State.INCOMPLETE:
+            print("made move")
             if random_turn == 1:
-                game.move(random.choice(game.available_moves()))
+                make_random_move(game)
                 ai_move = ai.pick_move(game)
                 game.move(ai_move)
             elif random_turn == -1:
                 ai_move = ai.pick_move(game)
                 game.move(ai_move)
-                game.move(random.choice(game.available_moves()))
+                make_random_move(game)
         if game.global_outcome() == State.DRAW:
             WDL[1] += 1
         elif game.global_outcome().value == random_turn:
@@ -103,12 +111,8 @@ def tester():
     mov = None
     print(game.__str__(pretty_print=True))
     while game.global_outcome() == State.INCOMPLETE:
-        availible_moves = game.availible_moves_numpy()
-        print(availible_moves)
-        choice = np.random.choice(availible_moves.shape[0], 1)[0]
-        mov = availible_moves[choice]
-        mv = ((mov[0], mov[1]), (mov[2], mov[3]))
-        game.move(mv)
+        mov = make_random_move(game)
+        print(mov)
         print(game.__str__(pretty_print=True))
     print(game.global_outcome())
     if input("Play again (y/n)? ") == "y":

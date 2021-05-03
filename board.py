@@ -79,9 +79,8 @@ class UltimateTTT:
         # the result of the overall game
         self.result = State.INCOMPLETE
         # global coordinates of the local board to play in
-        self.next_board: tuple[int, int] = None
-        # the sequence of moves played thus far
-        self.moves = []
+        self.next_board = None
+        self.last_move = np.zeros(4) -1
 
     def set_state(self, reference):
         """
@@ -95,7 +94,7 @@ class UltimateTTT:
         self.turn = reference.turn
         self.result = deepcopy(reference.result)
         self.next_board = reference.next_board
-        self.moves = deepcopy(reference.moves)
+        self.last_move = reference.last_move
 
     def __str__(self, pretty_print=True) -> str:
         """
@@ -200,21 +199,20 @@ class UltimateTTT:
         if not self._is_legal(tile):
             return False
         else:
-            glob, loc = tile[0], tile[1]
+            self.last_move = tile
+            globi, globj, loci, locj = tile[0], tile[1], tile[2], tile[3]
             # set the board for the opponent to play in
-            self.next_board = loc
-            # track the overall move history
-            self.moves.append(tile)
+            self.next_board = (loci, locj)
             # place the appropriate token on the board (if indices in range)
             try:
-                self.board[glob[0], glob[1], loc[0], loc[1]] = self.turn
+                self.board[globi, globj, loci, locj] = self.turn
             except:
                 return False
 
             self._change_turn()
 
             # compute winning stuff
-            self.win_board[glob] = self._compute_winner_local_board(glob)
+            self.win_board[globi,globj] = self._compute_winner_local_board((globi, globj))
             self.result = State(self._compute_winner_win_board())
 
             return True
@@ -320,9 +318,9 @@ class UltimateTTT:
 
         A move is not legal if the game is over.
         """
-        global_coords, local_coords = move[0], move[1]
-        if self._legal_global(global_coords):
-            return self.board[global_coords[0], global_coords[1], local_coords[0], local_coords[1]] == 0
+        globi, globj, loci, locj = move[0], move[1], move[2], move[3]
+        if self._legal_global((globi, globj)):
+            return self.board[globi, globj, loci, locj] == 0
         else:
             return False
 
