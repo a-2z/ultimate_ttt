@@ -119,7 +119,7 @@ class UltimateTTT:
         # all open spots on the board, not caring if a given local board can be legally played on
         availible_moves = self.board == 0
 
-        if self.next_board != None:
+        if self.next_board != (None,None):
             # a 3x3 zero matrix
             zero_board = np.zeros((self.dim, self.dim))
             # the local boards we can't legally play on
