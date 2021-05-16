@@ -75,28 +75,29 @@ class UltimateTTT:
         return self.result
 
     def compute_outcome(self, board):
-        # check rows
-        row_array = np.abs(np.sum(board, axis=0))
-        max_idx = np.argmax(row_array)
-        if row_array[max_idx] == won_num:
-            return board[max_idx,0]
 
         # check cols
+        row_array = np.abs(np.sum(board, axis=0))
+        max_idx = np.argmax(row_array)
+        if row_array[max_idx] == self.dim:
+            return board[0, max_idx]
+
+        # check rows
         col_array = np.abs(np.sum(board, axis=1))
         max_idx = np.argmax(col_array)
-        if col_array[max_idx] == won_num:
-            return board[0, max_idx]
+        if col_array[max_idx] == self.dim:
+            return board[max_idx, 0]
 
         # check diags
         diag_lr = np.abs(np.trace(board))
-        if diag_lr == won_num:
+        if diag_lr == self.dim:
             return board[0,0]
 
         diag_rl = np.abs(np.trace(np.rot90(board)))
-        if diag_rl == won_num:
+        if diag_rl == self.dim:
             return board[0,self.dim-1]
 
-        return 0
+        return -2 if np.all(board) else 0
 
     def move(self, move_array, player):
         globi, globj, loci, locj = move_array[0], move_array[1], move_array[2], move_array[3]
