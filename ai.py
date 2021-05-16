@@ -2,6 +2,7 @@ from board import UltimateTTT, State
 from math import log, sqrt
 import random
 import copy
+import numpy as np
 
 class MoveNode:
     """
@@ -37,7 +38,8 @@ class MoveNode:
         return x_i + self.c * sqrt(log(self.parent.n)/self.n)
 
     def expand(self, candidates):
-        self.children = [MoveNode(move=c, parent=self) for c in candidates]
+        for i in range(candidates.shape[0]):
+            self.children.append(MoveNode(move=candidates[i], parent=self))
 
     def back_propagate(self, result):
         curr = self 
@@ -81,22 +83,22 @@ class MCTS:
         #save the current game, which should never be modified during simulation
         self.root_state = game
         self.sim_game = copy.deepcopy(game)
-        history = self.sim_game.moves
+        last_move = self.sim_game.last_move
         opp_move = None
         #get the last move played if there is a history
-        if history: 
-            opp_move = self.sim_game.moves[-1]
+        if last_move[0] == -1: 
+            opp_move = last_move
         #set root if none exists
         if self.root == None:
-            if history:
+            if last_move[0] == -1:
                 self.root = MoveNode(opp_move) 
             else:
                 self.root = MoveNode(None)
         else:
             self.set_root(opp_move)
         #on subsequent simulations, root will be calculated
-        candidates = self.sim_game.available_moves()
-        if candidates == []:
+        candidates = self.sim_game.availible_moves_numpy()
+        if candidates.shape[0] == 0:
             print("dafuq")
         self.root.expand(candidates)
         return self.run_sims(self.root)
@@ -119,6 +121,7 @@ class MCTS:
 
         #run a simulation of a game max_iters times
         for _ in range(self.max_iters):
+            # no games have been played from this state
             if next_move.n == 0:
                 game_tmp.move(next_move.move)
                 game_over = game_tmp.global_outcome() != State.INCOMPLETE
@@ -140,7 +143,7 @@ class MCTS:
                     next_move.back_propagate(game_tmp.global_outcome().value)
                     game_tmp.set_state(self.root_state)
                     continue
-                candidates = game_tmp.available_moves()
+                candidates = game_tmp.availible_moves_numpy()
                 #expand a node that has been simulated once
                 if next_move.n == 1:
                     next_move.expand(candidates)
@@ -158,11 +161,12 @@ class MCTS:
         the root if it matches.
         """
         for c in self.root.children:
-            if c.move == move:
+            if np.array_equal(c.move, move):
                 self.root = c
                     
     def expand(self, node, candidates):
-        node.children = [MoveNode(move=c, parent=next_move) for c in candidates]
+        for i in range(candidates.shape[0]):
+            node.children.append(MoveNode(move=candidates[i], parent=self))
 
     def play_random(self, game):
         """
@@ -170,8 +174,10 @@ class MCTS:
         played for both players
         """
         while game.global_outcome() == State.INCOMPLETE:
-            candidates = game.available_moves()
-            game.move(random.choice(candidates))
+            candidates = game.availible_moves_numpy()
+            choice = np.random.choice(candidates.shape[0], 1)[0]
+            move = candidates[choice]
+            game.move(move)
         if game.global_outcome().value == 1:
             return 1 if self.is_x else 0
         #draw

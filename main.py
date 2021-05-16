@@ -10,7 +10,14 @@ from board import UltimateTTT, State
 
 def parse_input(str):
     parsed = re.findall("[0-9]+", str)
-    return ((int(parsed[0]), int(parsed[1])), (int(parsed[2]), int(parsed[3])))
+    return np.array([int(parsed[0]), int(parsed[1]), int(parsed[2]), int(parsed[3])])
+
+def make_random_move(game):
+    availible_moves = game.availible_moves_numpy()
+    choice = np.random.choice(availible_moves.shape[0], 1)[0]
+    mov = availible_moves[choice]
+    game.move(mov)
+    return mov
 
 def main():
     play_random()
@@ -21,7 +28,7 @@ def random_v_random():
         t0 = time.time()
         game = UltimateTTT()
         while game.global_outcome() == State.INCOMPLETE:
-            game.move(random.choice(game.available_moves()))
+            make_random_move(game)
         t1 = time.time()
         avg_time.append(t1 - t0)
     return sum(avg_time) / len((avg_time))
@@ -61,14 +68,15 @@ def play_random():
     ai = MCTS(turn=-random_turn)
     for _ in range(1):
         while game.global_outcome() == State.INCOMPLETE:
+            print("made move")
             if random_turn == 1:
-                game.move(random.choice(game.available_moves()))
+                make_random_move(game)
                 ai_move = ai.pick_move(game)
                 game.move(ai_move)
             elif random_turn == -1:
                 ai_move = ai.pick_move(game)
                 game.move(ai_move)
-                game.move(random.choice(game.available_moves()))
+                make_random_move(game)
         if game.global_outcome() == State.DRAW:
             WDL[1] += 1
         elif game.global_outcome().value == random_turn:
@@ -97,6 +105,18 @@ def make_moves(game, ai, player_turn):
         while not legal:
             p_move = parse_input(input("Move: "))
             legal = game.move(p_move)
+
+def tester():
+    game = UltimateTTT()
+    mov = None
+    print(game.__str__(pretty_print=True))
+    while game.global_outcome() == State.INCOMPLETE:
+        mov = make_random_move(game)
+        print(mov)
+        print(game.__str__(pretty_print=True))
+    print(game.global_outcome())
+    if input("Play again (y/n)? ") == "y":
+        tester()
 
 if __name__ == "__main__":
     main()
