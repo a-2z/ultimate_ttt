@@ -113,7 +113,7 @@ class UltimateTTT:
         if self.result == 0 and np.all(self.win_board):
             self.result = -2
 
-        self.next_board = (globi, globj)
+        self.next_board = (loci, locj)
 
     def availible_moves_4d(self):
         # all open spots on the board, not caring if a given local board can be legally played on
