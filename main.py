@@ -20,7 +20,30 @@ def make_random_move(game):
     return mov
 
 def main():
-    play_random()
+    ai_v_rand(1, 100)
+
+def ai_v_rand(difficulty, c):
+    WDL = [0, 0, 0]
+    game_time = 0
+    t0 = time.time()
+    game = UltimateTTT()
+    # random is O, ai is X
+    random_turn = -1
+    ai = MCTS(turn=-random_turn, difficulty=difficulty, ucb_c=c)
+    while game.global_outcome() == State.INCOMPLETE:
+        make_random_move(game)
+        ai_move = ai.pick_move(game)
+        game.move(ai_move)
+    if game.global_outcome() == State.DRAW:
+        WDL[1] += 1
+    elif game.global_outcome().value == random_turn:
+        WDL[2] += 1
+    else:
+        WDL[0] += 1
+    t1 = time.time()
+    game_time = t1 - t0
+    print(WDL, game_time)
+    return WDL, game_time
 
 def random_v_random():
     avg_time = []
@@ -31,7 +54,9 @@ def random_v_random():
             make_random_move(game)
         t1 = time.time()
         avg_time.append(t1 - t0)
-    return sum(avg_time) / len((avg_time))
+    average = sum(avg_time) / len((avg_time))
+    print(average)
+    return average
 
 def get_turn():
     """

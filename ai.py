@@ -54,9 +54,10 @@ class MCTS:
     Monte Carlo Tree Search.
     """
     #The number of iterations to run the algorithm based on the difficulty
-    DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
+    # DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
+    DIFFICULTY = {level: level * 1 for level in range(1, 6)}
 
-    def __init__(self, turn=1, difficulty = 5):
+    def __init__(self, turn=1, difficulty = 5, ucb_c = 2):
         """
         Parameter turn: the token 1 or -1 to which the AI corresponds
 
@@ -64,7 +65,7 @@ class MCTS:
         of iterations of the algorithm to run on each move.
         """
         #hyperparameter for computing upper confidence bounds
-        self.c = 2
+        self.c = ucb_c
         self.max_iters = MCTS.DIFFICULTY[difficulty]
         self.root_state = None
         #SHOULD NOT BE MODIFIED IN SIMULATIONS
