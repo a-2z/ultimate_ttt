@@ -55,7 +55,7 @@ class MCTS:
     """
     #The number of iterations to run the algorithm based on the difficulty
     # DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
-    DIFFICULTY = {level: level * 100 for level in range(1, 6)}
+    DIFFICULTY = {level: level * 1 for level in range(1, 6)}
 
     def __init__(self, turn=1, difficulty = 5, ucb_c = 2):
         """
@@ -100,7 +100,7 @@ class MCTS:
         else:
             self.set_root(opp_move)
         #on subsequent simulations, root will be calculated
-        candidates = self.sim_game.available_moves_numpy()
+        candidates = self.sim_game.availible_moves_numpy()
         if candidates.shape[0] == 0:
             raise(AssertionError)
         self.root.expand(candidates)
@@ -149,7 +149,7 @@ class MCTS:
                     next_move.back_propagate(game_tmp.global_outcome().value)
                     game_tmp.set_state(self.root_state)
                     continue
-                candidates = game_tmp.available_moves_numpy()
+                candidates = game_tmp.availible_moves_numpy()
                 #expand a node that has been simulated once
                 if next_move.n == 1:
                     next_move.expand(candidates)
@@ -180,7 +180,7 @@ class MCTS:
         played for both players
         """
         while game.global_outcome() == State.INCOMPLETE:
-            candidates = game.available_moves_numpy()
+            candidates = game.availible_moves_numpy()
             choice = np.random.choice(candidates.shape[0], 1)[0]
             move = candidates[choice]
             game.move(move)

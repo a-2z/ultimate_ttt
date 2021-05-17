@@ -13,10 +13,10 @@ def parse_input(str):
     return np.array([int(parsed[0]), int(parsed[1]), int(parsed[2]), int(parsed[3])])
 
 def make_random_move(game):
-    available_moves = game.available_moves_numpy()
-    choice = np.random.choice(available_moves.shape[0], 1)[0]
-    mov = available_moves[choice]
-    game.move(mov, player=False)
+    availible_moves = game.availible_moves_numpy()
+    choice = np.random.choice(availible_moves.shape[0], 1)[0]
+    mov = availible_moves[choice]
+    game.move(mov)
     return mov
 
 def main():
@@ -30,20 +30,19 @@ def ai_v_rand(difficulty, c):
     # random is O, ai is X
     random_turn = -1
     ai = MCTS(turn=-random_turn, difficulty=difficulty, ucb_c=c)
-    while game.get_outcome() == 0:
-        print("for")
+    while game.global_outcome() == State.INCOMPLETE:
         make_random_move(game)
-        if game.get_outcome() == 0:
-            ai_move = ai.pick_move(game)
-            game.move(ai_move, player=False)
-    if game.get_outcome() == -2:
+        ai_move = ai.pick_move(game)
+        game.move(ai_move)
+    if game.global_outcome() == State.DRAW:
         WDL[1] += 1
-    elif game.get_outcome() == random_turn:
+    elif game.global_outcome().value == random_turn:
         WDL[2] += 1
     else:
         WDL[0] += 1
     t1 = time.time()
     game_time = t1 - t0
+    print(WDL, game_time)
     return WDL, game_time
 
 def random_v_random():

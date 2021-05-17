@@ -4,7 +4,7 @@ import csv
 
 c = [2, 10, 50, 100, 1000]
 difficulty = [1, 2, 3, 4, 5]
-num_games = 100
+num_games = 1
 
 def experiments(c, difficulty, num_games, ai_v_rand=True):
     print("here")
