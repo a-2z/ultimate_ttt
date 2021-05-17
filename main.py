@@ -32,8 +32,9 @@ def ai_v_rand(difficulty, c):
     ai = MCTS(turn=-random_turn, difficulty=difficulty, ucb_c=c)
     while game.global_outcome() == State.INCOMPLETE:
         make_random_move(game)
-        ai_move = ai.pick_move(game)
-        game.move(ai_move)
+        if game.global_outcome() == State.INCOMPLETE:
+            ai_move = ai.pick_move(game)
+            game.move(ai_move)
     if game.global_outcome() == State.DRAW:
         WDL[1] += 1
     elif game.global_outcome().value == random_turn:
