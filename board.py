@@ -70,6 +70,7 @@ class UltimateTTT:
         self.win_board = np.zeros((self.dim, self.dim), dtype=np.int8)    
         self.result = 0
         self.next_board = (None, None)
+        self.last_move = None
 
     def get_outcome(self):
         return self.result
@@ -100,7 +101,7 @@ class UltimateTTT:
         return -2 if np.all(board) else 0
 
     def move(self, move_array, player):
-        globi, globj, loci, locj = move_array[0], move_array[1], move_array[2], move_array[3]
+        globi, globj, loci, locj = move_array
 
         self.board[globi, globj, loci, locj] = player
 
@@ -114,13 +115,14 @@ class UltimateTTT:
         if self.result == 0 and np.all(self.win_board):
             self.result = -2
 
+        self.last_move = move_array
         self.next_board = (loci, locj)
 
-    def availible_moves_4d(self):
+    def available_moves_4d(self):
         # all open spots on the board, not caring if a given local board can be legally played on
-        availible_moves = self.board == 0
+        available_moves = self.board == 0
 
-        if self.next_board != (None,None):
+        if self.next_board != (None, None):
             # a 3x3 zero matrix
             zero_board = np.zeros((self.dim, self.dim))
             # the local boards we can't legally play on
@@ -134,10 +136,10 @@ class UltimateTTT:
                 turn_to_zero = self.win_board != 0
 
             # set the value for local boards we can't legally play on to zero
-            availible_moves[turn_to_zero.astype(bool)] = zero_board
+            available_moves[turn_to_zero.astype(bool)] = zero_board
 
-        return availible_moves
+        return available_moves
 
-    def availible_moves_numpy(self):
-        availible_4d = self.availible_moves_4d()
-        return np.argwhere(availible_4d == 1)
+    def available_moves_numpy(self):
+        available_4d = self.available_moves_4d()
+        return np.argwhere(available_4d == 1)
