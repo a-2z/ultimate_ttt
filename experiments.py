@@ -22,12 +22,20 @@ class ExperimentFuncs:
     For example, to run only experiments 1 and 3, you can type:
 
     python experiments.py 1 3
+
+    Experiments run in parallel
     """
     #variables of monte carlo tree search
     c_parameters = [1, 2, 3, 50, 200, 1000, 2000]
-    difficulties = MCTS.DIFFICULTY.values()
+    difficulties = MCTS.DIFFICULTY
     #a random opponent that can be used in simulations
     rando = RandomAgent()
+
+    def _time_game(scoreboard):
+        t0 = time.time()
+        wld[agent_play(mcts, ExperimentFuncs.rando)] += 1
+        t1 = time.time()
+        total_time += t1 - t0
 
     def experiment1():
         """
@@ -39,7 +47,7 @@ class ExperimentFuncs:
         #wins, losses, draws
         for c in ExperimentFuncs.c_parameters:
             for d in ExperimentFuncs.difficulties:
-                mcts = MCTS(variable_diff=False, difficulty=d, ucb_c=c)
+                mcts = MCTS(variable_diff=True, difficulty=d, ucb_c=c)
                 wld = [0, 0, 0]
                 total_time = 0
                 for g in range(num_games):
@@ -50,7 +58,7 @@ class ExperimentFuncs:
                     #must reset the root between games
                     mcts.reset_root()
                 stats[(c, d)] = wld, total_time / num_games
-        save_results(stats)
+        save_results(1, stats)
 
     def experiment2():
         print("run 2")
@@ -78,8 +86,11 @@ if __name__ == "__main__":
     for exp_num in sys.argv[1:]:
         to_run.append("experiment" + exp_num)
     experiment_funcs = inspect.getmembers(ExperimentFuncs)
-    experiment_threads = [threading.Thread(target = func[1]) for func in experiment_funcs]
-    for thread in experiment_threads:
+    exp_threads = []
+    for func in experiment_funcs:
+        if func[0] in to_run:
+            exp_threads.append(threading.Thread(target = func[1]))
+    for thread in exp_threads:
         thread.start()
 
 

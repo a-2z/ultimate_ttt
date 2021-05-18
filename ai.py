@@ -63,7 +63,7 @@ class MCTS(Agent):
     """
     #The number of iterations to run the algorithm based on the difficulty
     # DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
-    DIFFICULTY = {level: level * 1 for level in range(1, 6)}
+    DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
 
     def __init__(self, variable_diff=False, difficulty = 5, ucb_c = 2):
         """
@@ -205,8 +205,9 @@ class MCTS(Agent):
         played for both players
         """
         while game.global_outcome() == State.INCOMPLETE:
-            np.random.choice(game.available_moves())
-            game.move(move)
+            available_moves = game.available_moves()
+            idx = np.random.choice(available_moves.shape[0], 1)[0]
+            game.move(available_moves[idx])
         if game.global_outcome().value == 1:
             return 1 if self.is_x else 0
         #draw

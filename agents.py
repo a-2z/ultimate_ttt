@@ -15,6 +15,7 @@ class RandomAgent(Agent):
 
     def pick_move(self, game):
         available_moves = game.available_moves()
-        return np.random.choice(available_moves)
+        idx = np.random.choice(available_moves.shape[0], 1)[0]
+        return available_moves[idx]
 
         
