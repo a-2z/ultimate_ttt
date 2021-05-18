@@ -10,6 +10,9 @@ class Agent(object):
   def make_move(self, board):
     raise NotImplementedError
 
+  def reset(self):
+    pass
+
 class RandomAgent(Agent):
   def __init__(self, player):
     self.player = player
@@ -165,6 +168,9 @@ class TimedMCTSAgent(Agent):
     move = best_child.move
     board.move(move, self.player)
     return move
+
+  def reset(self):
+    self.root = None
 
 class Node():
   def __init__(self, player, board, move, c, parent):

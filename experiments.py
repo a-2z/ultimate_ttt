@@ -23,6 +23,9 @@ def score_AIs(num_games, player_algo, opponent_algo):
       score[0] += 1
     else:
       score[1] += 1
+
+    player_algo.reset()
+    opponent_algo.reset()
     
   return score
 
@@ -76,4 +79,4 @@ if __name__ == "__main__":
   # combos
   for i in range(len(AIsX)):
     for j in range(len(AIsO)):
-      print_out_result(AIsX[i], AIsO[i], num_games, AIsX_labels[i] + " vs " + AIsO_labels[i])
+      print_out_result(AIsX[i], AIsO[j], num_games, AIsX_labels[i] + " vs " + AIsO_labels[j])
