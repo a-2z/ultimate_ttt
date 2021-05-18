@@ -5,6 +5,7 @@ import time
 import sys
 import inspect
 import threading
+from multiprocessing import Process, RawValue, Array, Lock
 import csv
 
 
@@ -31,11 +32,27 @@ class ExperimentFuncs:
     #a random opponent that can be used in simulations
     rando = RandomAgent()
 
-    def _time_game(scoreboard):
+    class Stats:
+        def __init__(self):
+            self.scoreboard = [0, 0, 0]
+            self.time = 0
+            self.lock = Lock()
+
+        def set_stats(self, score, time):
+            with self.lock:
+                print(score, "dong")
+                self.scoreboard[score] += 1
+                self.time += time
+
+    def _time_game(scoreboard, tot_time, d, c):
+        mcts = MCTS(variable_diff=True, difficulty=d, ucb_c=c)
+        total_time = 0
         t0 = time.time()
-        wld[agent_play(mcts, ExperimentFuncs.rando)] += 1
+        outcome = agent_play(mcts, ExperimentFuncs.rando)
         t1 = time.time()
         total_time += t1 - t0
+        scoreboard[outcome] += 1
+        tot_time.value = total_time
 
     def experiment1():
         """
@@ -43,22 +60,21 @@ class ExperimentFuncs:
         opponent; number of rollouts is fixed.
         """
         num_games = 10
-        stats = {}
+        exp_stats = {}
         #wins, losses, draws
         for c in ExperimentFuncs.c_parameters:
             for d in ExperimentFuncs.difficulties:
-                mcts = MCTS(variable_diff=True, difficulty=d, ucb_c=c)
-                wld = [0, 0, 0]
-                total_time = 0
-                for g in range(num_games):
-                    t0 = time.time()
-                    wld[agent_play(mcts, ExperimentFuncs.rando)] += 1
-                    t1 = time.time()
-                    total_time += t1 - t0
-                    #must reset the root between games
-                    mcts.reset_root()
-                stats[(c, d)] = wld, total_time / num_games
-        save_results(1, stats)
+                total_time = RawValue('f', 0.0)
+                wld = Array('d', [0, 0, 0])
+                #run games concurrently
+                procs = [Process(target=ExperimentFuncs._time_game, 
+                                 args=(wld, total_time, d, c)) 
+                                 for i in range(num_games)]
+                for p in procs: p.start()
+                for p in procs: p.join()
+                exp_stats[(c, d)] = wld[:], total_time.value / num_games
+                print(exp_stats[(c, d)])
+        save_results(1, exp_stats)
 
     def experiment2():
         print("run 2")
@@ -92,26 +108,3 @@ if __name__ == "__main__":
             exp_threads.append(threading.Thread(target = func[1]))
     for thread in exp_threads:
         thread.start()
-
-
-
-    # def experiments(c, difficulty, num_games, ai_v_rand=True):
-    #     print("here")
-    #     game_stats = {}
-    #     if ai_v_rand:
-    #         for ucb_c in c:
-    #             for diff in difficulty:
-    #                 sum_list = [0, 0, 0]
-    #                 time_avg = 0
-    #                 for k in range(num_games):
-    #                     result = main.ai_v_rand(diff, ucb_c)
-    #                     time_avg += result[1]
-    #                     sum_list = [a + b for a, b in zip(sum_list, result[0])]
-    #                 average_time = time_avg / num_games
-    #                 game_stats[(ucb_c, diff)] = (sum_list, average_time)
-    #                 print(sum_list, average_time)
-    #     else:
-    #         # play ai_v_ai
-    #         print("ai_v_ai")
-    #     print(game_stats)
-    #     return game_stats

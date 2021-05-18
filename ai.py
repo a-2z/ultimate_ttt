@@ -80,6 +80,7 @@ class MCTS(Agent):
         #hyperparameter for computing upper confidence bounds
         self.c = ucb_c
         self.max_iters = MCTS.DIFFICULTY[difficulty]
+        self.iters = 0
         self.root_state = None
         #set variable difficulty
         self.var_diff = variable_diff
@@ -127,7 +128,7 @@ class MCTS(Agent):
         candidates = self.sim_game.available_moves()
         #use a variable difficulty based on how deep the AI is into the game
         if self.var_diff:
-            self.max_iters = self.set_iters(candidates)
+            self.iters = self.set_iters(candidates)
         if candidates.shape[0] == 0:
             raise(AssertionError)
         self.root.expand(candidates)
@@ -151,7 +152,7 @@ class MCTS(Agent):
         next_move = self.best_child(root)
 
         #run a simulation of a game max_iters times
-        for _ in range(self.max_iters):
+        for _ in range(self.iters):
             # no games have been played from this state
             if next_move.n == 0:
                 game_tmp.move(next_move.move, )
