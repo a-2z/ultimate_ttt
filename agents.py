@@ -165,7 +165,12 @@ class TimedMCTSAgent(Agent):
 
     self.root = best_child
 
-    move = best_child.move
+    if best_child == None:
+      potential_moves = board.availible_moves_numpy()
+      choice = np.random.choice(potential_moves.shape[0], 1)[0]
+      move = potential_moves[choice]
+    else:
+      move = best_child.move
     board.move(move, self.player)
     return move
 
@@ -248,9 +253,9 @@ class Node():
     while curr_node is not None:
       curr_node.visits +=1
       if winner == -2:
-        self.ties += 1
+        curr_node.ties += 1
       elif curr_node.player == winner:
-        self.wins += 1
+        curr_node.wins += 1
       else:
-        self.losses += 1
+        curr_node.losses += 1
       curr_node = curr_node.parent
