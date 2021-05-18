@@ -3,7 +3,7 @@ import numpy as np
 def end_value(outcome):
   if outcome == -2:
     return 0
-  return 100000
+  return 100000 * outcome
 
 def plus_heuristic_fun(local_heuristic, global_heuristic, player):
   heuristic_state = np.zeros((3,3,3,3))
