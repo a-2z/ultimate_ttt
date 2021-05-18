@@ -9,12 +9,6 @@ from multiprocessing import Process, RawValue, Array, Lock
 import csv
 
 
-###Experiment Definitions###
-
-c = [2, 10, 50, 100, 1000]
-difficulty = [1, 2, 3, 4, 5]
-num_games = 1
-
 class ExperimentFuncs:
     """
     All experiments should be void functions with no arguments. They can
@@ -31,18 +25,6 @@ class ExperimentFuncs:
     difficulties = MCTS.DIFFICULTY
     #a random opponent that can be used in simulations
     rando = RandomAgent()
-
-    class Stats:
-        def __init__(self):
-            self.scoreboard = [0, 0, 0]
-            self.time = 0
-            self.lock = Lock()
-
-        def set_stats(self, score, time):
-            with self.lock:
-                print(score, "dong")
-                self.scoreboard[score] += 1
-                self.time += time
 
     def _time_game(scoreboard, tot_time, d, c):
         mcts = MCTS(variable_diff=True, difficulty=d, ucb_c=c)
@@ -61,26 +43,65 @@ class ExperimentFuncs:
         """
         num_games = 10
         exp_stats = {}
-        #wins, losses, draws
-        for c in ExperimentFuncs.c_parameters:
-            for d in ExperimentFuncs.difficulties:
-                total_time = RawValue('f', 0.0)
-                wld = Array('d', [0, 0, 0])
-                #run games concurrently
-                procs = [Process(target=ExperimentFuncs._time_game, 
-                                 args=(wld, total_time, d, c)) 
-                                 for i in range(num_games)]
-                for p in procs: p.start()
-                for p in procs: p.join()
-                exp_stats[(c, d)] = wld[:], total_time.value / num_games
-                print(exp_stats[(c, d)])
-        save_results(1, exp_stats)
+        try:
+            #wins, losses, draws
+            for c in ExperimentFuncs.c_parameters:
+                for d in ExperimentFuncs.difficulties:
+                    total_time = RawValue('f', 0.0)
+                    wld = Array('d', [0, 0, 0])
+                    #run games concurrently
+                    procs = [Process(target=ExperimentFuncs._time_game, 
+                                    args=(wld, total_time, d, c)) 
+                                    for i in range(num_games)]
+                    for p in procs: p.start()
+                    for p in procs: p.join()
+                    exp_stats[(c, d)] = wld[:], total_time.value / num_games
+                    print(exp_stats[(c, d)])
+            save_results(1, exp_stats)
+        except:
+            save_results(1, exp_stats)
+
+    def _exp2process(scoreboard):
+        mcts1 = MCTS(variable_diff=True, difficulty=5, ucb_c=2000)
+        mcts2 = MCTS(variable_diff=True, difficulty=1, ucb_c=2000)
+        outcome = agent_play(mcts1, mcts2)
+        scoreboard[outcome] += 1
 
     def experiment2():
-        print("run 2")
+        """
+        AI vs AI, different number of iterations
+        """
+        num_games = 5
+        wld = Array('d', [0, 0, 0])
+        #wins, losses, draws
+        #run games concurrently
+        procs = [Process(target=ExperimentFuncs._exp2process, 
+                        args=(wld,)) 
+                        for i in range(num_games)]
+        for p in procs: p.start()
+        for p in procs: p.join()
+        print(exp_stats[(c, d)])
+        save_results(1, wld)
+
+    def _exp3process(scoreboard):
+        mcts1 = MCTS(variable_diff=True, difficulty=1, ucb_c=2000)
+        mcts2 = MCTS(variable_diff=True, difficulty=1, ucb_c=50)
+        outcome = agent_play(mcts1, mcts2)
+        scoreboard[outcome] += 1
 
     def experiment3():
-        print("run 3")
+        num_games = 5
+        wld = Array('d', [0, 0, 0])
+        #wins, losses, draws
+        #run games concurrently
+        procs = [Process(target=ExperimentFuncs._exp3process, 
+                        args=(wld,)) 
+                        for i in range(num_games)]
+        for p in procs: p.start()
+        for p in procs: p.join()
+        print(exp_stats[(c, d)])
+        save_results(1, exp_stats)
+
 
 def save_results(experiment_num, stats):
     contents = "c_parameter\tDifficulty\tW\tD\tL\tTime\n"
@@ -95,6 +116,13 @@ def save_results(experiment_num, stats):
                                                             WDL[1],
                                                             WDL[2],
                                                             time)
+        csv_file.write(contents)
+
+def save_ai_results(experiment_num, stats):
+    contents = "W\tL\tD\n"
+    with open("experiment{}.csv".format(experiment_num), "w+") as csv_file:
+        for stat in stats: 
+            contents += stat + "\t"
         csv_file.write(contents)
 
 if __name__ == "__main__":

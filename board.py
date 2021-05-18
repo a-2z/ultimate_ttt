@@ -44,7 +44,7 @@ class UltimateTTT:
     O = -1,
     Empty = 0
 
-    Global board: A 9x9 numpy array initialized to all 0s (empty tiles).
+    Global board: A 3x3x3x3 numpy array initialized to all 0s (empty tiles).
 
     All operations on local boards will take place through slicing of the
     global array board first. For this reason, some of the methods might
