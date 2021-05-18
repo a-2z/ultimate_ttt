@@ -63,7 +63,7 @@ class MCTS(Agent):
     """
     #The number of iterations to run the algorithm based on the difficulty
     # DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
-    DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
+    DIFFICULTY = {level: level * 100 for level in range(1, 6)}
 
     def __init__(self, variable_diff=False, difficulty = 5, ucb_c = 2):
         """
@@ -96,8 +96,8 @@ class MCTS(Agent):
         self.root = MoveNode(None)
 
     def set_iters(self, available_moves):
-        moves_left = len(available_moves)
-        return self.max_iters * ((81 - moves_left) // 81) ** 6
+        moves_left = available_moves.shape[0]
+        return int(self.max_iters * ((81 - moves_left) / 81) ** 6)
 
     def pick_move(self, game):
         """
@@ -127,10 +127,10 @@ class MCTS(Agent):
         #on subsequent simulations, root will be calculated
         candidates = self.sim_game.available_moves()
         #use a variable difficulty based on how deep the AI is into the game
-        if self.var_diff:
-            self.iters = self.set_iters(candidates)
         if candidates.shape[0] == 0:
             raise(AssertionError)
+        if self.var_diff:
+            self.iters = self.set_iters(candidates)
         self.root.expand(candidates)
         mv = self.run_sims(self.root)
         return mv
@@ -150,7 +150,6 @@ class MCTS(Agent):
         game_tmp = self.sim_game
         #create nodes for the candidate moves in the current position
         next_move = self.best_child(root)
-
         #run a simulation of a game max_iters times
         for _ in range(self.iters):
             # no games have been played from this state
