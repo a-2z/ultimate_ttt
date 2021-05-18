@@ -194,7 +194,7 @@ class Node():
 
   def uct(self):
     if self.visits == 0:
-      return float("-inf")
+      return float("inf")
 
     n = self.visits
     w = self.wins
