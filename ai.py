@@ -1,5 +1,6 @@
 from board import UltimateTTT, State
 from math import log, sqrt
+from agents import Agent
 import random
 import copy
 import numpy as np
@@ -48,30 +49,54 @@ class MoveNode:
             curr.wins += result 
             curr = curr.parent
 
-class MCTS:
+class MCTS(Agent):
     """
     Implements playing of Ultimate Tic-Tac-Toe using 
     Monte Carlo Tree Search.
+
+    The root of the search tree is set to the results of the node representing
+    a chosen child of a root from a previous iteration to increase 
+    accuracy across moves.
+
+    This root must be reset if the AI is used again to play another game with
+    reset_root
     """
     #The number of iterations to run the algorithm based on the difficulty
     # DIFFICULTY = {level: level * 1000 for level in range(1, 6)}
     DIFFICULTY = {level: level * 1 for level in range(1, 6)}
 
-    def __init__(self, turn=1, difficulty = 5, ucb_c = 2):
+    def __init__(self, variable_diff=False, difficulty = 5, ucb_c = 2):
         """
         Parameter turn: the token 1 or -1 to which the AI corresponds
 
         Parameter difficulty: int in [1, 5] that corresponds to the number
         of iterations of the algorithm to run on each move.
+
+        Parameter variable_diff: Varies the number of iterations taken by the
+        AI to calculate the next move. At the beginning of the game, it 
+        will spend fewer iterations, since the search space is too large
+        to calculate strategically optimal moves anyway.
         """
         #hyperparameter for computing upper confidence bounds
         self.c = ucb_c
         self.max_iters = MCTS.DIFFICULTY[difficulty]
         self.root_state = None
+        #set variable difficulty
+        self.var_diff = variable_diff
         #SHOULD NOT BE MODIFIED IN SIMULATIONS
         self.sim_game = None
-        self.is_x = turn == 1
         self.root = None
+
+    def reset_root(self):
+        """
+        Erases the root information that is recycled between games if a new
+        game is being played
+        """
+        self.root = MoveNode(None)
+
+    def set_iters(self, available_moves):
+        moves_left = len(available_moves)
+        return self.max_iters * ((81 - moves_left) // 81) ** 6
 
     def pick_move(self, game):
         """
@@ -81,8 +106,7 @@ class MCTS:
         Returns the move (global_coord, local_coord) corresponding to the 
         highest UCB estimate.
         """
-        import time
-        t0 = time.time()
+        self.is_x = game.turn == 1
         #save the current game, which should never be modified during simulation
         self.root_state = game
         self.sim_game = copy.deepcopy(game)
@@ -100,13 +124,14 @@ class MCTS:
         else:
             self.set_root(opp_move)
         #on subsequent simulations, root will be calculated
-        candidates = self.sim_game.availible_moves_numpy()
+        candidates = self.sim_game.available_moves()
+        #use a variable difficulty based on how deep the AI is into the game
+        if self.var_diff:
+            self.max_iters = self.set_iters(candidates)
         if candidates.shape[0] == 0:
             raise(AssertionError)
         self.root.expand(candidates)
         mv = self.run_sims(self.root)
-        t1 = time.time()
-        print("seconds: ", t1-t0)
         return mv
 
     def best_child(self, move):
@@ -149,7 +174,7 @@ class MCTS:
                     next_move.back_propagate(game_tmp.global_outcome().value)
                     game_tmp.set_state(self.root_state)
                     continue
-                candidates = game_tmp.availible_moves_numpy()
+                candidates = game_tmp.available_moves()
                 #expand a node that has been simulated once
                 if next_move.n == 1:
                     next_move.expand(candidates)
@@ -180,9 +205,7 @@ class MCTS:
         played for both players
         """
         while game.global_outcome() == State.INCOMPLETE:
-            candidates = game.availible_moves_numpy()
-            choice = np.random.choice(candidates.shape[0], 1)[0]
-            move = candidates[choice]
+            np.random.choice(game.available_moves())
             game.move(move)
         if game.global_outcome().value == 1:
             return 1 if self.is_x else 0

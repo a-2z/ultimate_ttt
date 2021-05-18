@@ -80,7 +80,7 @@ class UltimateTTT:
         self.result = State.INCOMPLETE
         # global coordinates of the local board to play in
         self.next_board = None
-        self.last_move = np.zeros(4) -1
+        self.last_move = np.zeros(4) - 1
 
     def set_state(self, reference):
         """
@@ -119,7 +119,10 @@ class UltimateTTT:
 
             flat_board = self._flatten_board(board_rep)
 
-            unfilled = "\n".join(self.dim * ([multiplier * sep, self.dim * (row + (self.dim-1) * row_clear)] + (self.dim-1) * [self.dim * (sep_clear + (self.dim-1) * clear), self.dim * (row + (self.dim-1) * row_clear)]))
+            unfilled = "\n".join(self.dim * ([multiplier * sep, 
+            self.dim * (row + (self.dim-1) * row_clear)] + (self.dim-1) * 
+            [self.dim * (sep_clear + (self.dim-1) * clear), 
+            self.dim * (row + (self.dim-1) * row_clear)]))
             return unfilled.format(*list(flat_board))
         else:
             stringify = np.vectorize(UltimateTTT.str_token, otypes=[np.ndarray])
@@ -130,12 +133,12 @@ class UltimateTTT:
         for i in range(self.dim):
             for k in range(self.dim):
                 flat = np.concatenate((flat, board[i,:,k,:]), axis=None)
-
         return flat
 
     def twoD_rep(self):
         """
-        Returns the board as a two dimensional array, as opposed to a 4 dimensional one
+        Returns the board as a two dimensional array, 
+        as opposed to a 4 dimensional one
         """
         return _flatten_board(self.board).reshape((self.dim,self.dim))
 
@@ -324,13 +327,13 @@ class UltimateTTT:
         else:
             return False
 
-    def availible_moves_4d(self):
+    def available_moves_4d(self):
         """
         Returns a 3x3x3x3 array where a 1 means a move can be played in that location, and a 0 means it can't
         """
         
         # all open spots on the board, not caring if a given local board can be legally played on
-        availible_moves = self.board == 0
+        available_moves = self.board == 0
 
         if self.next_board != None:
             (next_globi, next_globj) = self.next_board
@@ -347,13 +350,13 @@ class UltimateTTT:
                 turn_to_zero = self.win_board != 0
 
             # set the value for local boards we can't legally play on to zero
-            availible_moves[turn_to_zero.astype(bool)] = zero_board
+            available_moves[turn_to_zero.astype(bool)] = zero_board
 
-        return availible_moves
+        return available_moves
 
-    def availible_moves_numpy(self):
+    def available_moves(self):
         """
-        Returns a nx4 array indicating the coordinates of all the availible moves, where n is the number of availible moves
+        Returns a nx4 array indicating the coordinates of all the available moves, where n is the number of available moves
         """
-        availible_4d = self.availible_moves_4d()
-        return np.argwhere(availible_4d == 1)
+        available_4d = self.available_moves_4d()
+        return np.argwhere(available_4d == 1)

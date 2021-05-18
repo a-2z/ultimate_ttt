@@ -1,4 +1,3 @@
-
 # Basic setup
 import numpy as np
 import re
@@ -9,19 +8,43 @@ from board import UltimateTTT, State
 
 
 def parse_input(str):
-    parsed = re.findall("[0-9]+", str)
-    return np.array([int(parsed[0]), int(parsed[1]), int(parsed[2]), int(parsed[3])])
-
-def make_random_move(game):
-    availible_moves = game.availible_moves_numpy()
-    choice = np.random.choice(availible_moves.shape[0], 1)[0]
-    mov = availible_moves[choice]
-    game.move(mov)
-    return mov
+    return np.array([int(i) for i in re.findall("[0-9]+", str)])
 
 def main():
     ai_v_rand(1, 100)
 
+def _agent_move(game, agent):
+    """
+    Agent picks a move from available moves in unspecified manner and then
+    the move is played in the game
+    """
+    move = agent.pick_move(game)
+    game.move(move)
+
+def agent_play(a1, a2):
+    """
+    Returns the outcome of a game between two agents (AIs, random players, etc)
+
+    0 means agent 1 lost, 1 means agent 1 won, and 2 means there was a draw.
+    """
+    game = UltimateTTT()
+    players = (a1, a2)
+    #randomly pick who goes first
+    first = random.randint(0, 1)
+    to_move = first
+    while game.global_outcome() == State.INCOMPLETE:
+        _agent_move(game, players[to_move])
+        #flips whose turn it is
+        to_move = not to_move
+    outcome = game.global_outcome()
+    if outcome == State.DRAW:
+        return 2
+    elif outcome == State.X:
+        return int(first != 0)
+    else:
+        return int(first != 1)
+
+################Playing against real opponents##################################
 def ai_v_rand(difficulty, c):
     WDL = [0, 0, 0]
     game_time = 0
@@ -32,12 +55,11 @@ def ai_v_rand(difficulty, c):
     ai = MCTS(turn=-random_turn, difficulty=difficulty, ucb_c=c)
     while game.global_outcome() == State.INCOMPLETE:
         make_random_move(game)
-        if game.global_outcome() == State.INCOMPLETE:
-            ai_move = ai.pick_move(game)
-            game.move(ai_move)
+        ai_move = ai.pick_move(game)
+        game.move(ai_move)
     if game.global_outcome() == State.DRAW:
         WDL[1] += 1
-    elif game.global_outcome().value == random_turn:
+    elif game.global_outcome() == State.O:
         WDL[2] += 1
     else:
         WDL[0] += 1
@@ -71,21 +93,6 @@ def get_turn():
         elif player_choice == 'o':
             player_turn = -1
     return player_turn
-
-def play_ai():
-    #create an AI and print the original board
-    game = UltimateTTT()
-    print(game.win_board)
-    player_turn = get_turn()
-    ai = MCTS(turn=-player_turn)
-    
-    while game.global_outcome() == State.INCOMPLETE:
-        #get input from both the user and the AI
-        make_moves(game, ai, player_turn)
-    print(game.global_outcome())
-    if input("Play again (y/n)? ") == "y":
-        play_ai()
-
 
 def play_random():
     WDL = [0, 0, 0]
@@ -132,17 +139,6 @@ def make_moves(game, ai, player_turn):
             p_move = parse_input(input("Move: "))
             legal = game.move(p_move)
 
-def tester():
-    game = UltimateTTT()
-    mov = None
-    print(game.__str__(pretty_print=True))
-    while game.global_outcome() == State.INCOMPLETE:
-        mov = make_random_move(game)
-        print(mov)
-        print(game.__str__(pretty_print=True))
-    print(game.global_outcome())
-    if input("Play again (y/n)? ") == "y":
-        tester()
 
 if __name__ == "__main__":
     main()
