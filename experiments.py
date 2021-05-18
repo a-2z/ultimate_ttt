@@ -80,8 +80,7 @@ class ExperimentFuncs:
                         for i in range(num_games)]
         for p in procs: p.start()
         for p in procs: p.join()
-        print(exp_stats[(c, d)])
-        save_results(1, wld)
+        save_ai_results(2, wld)
 
     def _exp3process(scoreboard):
         mcts1 = MCTS(variable_diff=True, difficulty=1, ucb_c=2000)
@@ -94,13 +93,12 @@ class ExperimentFuncs:
         wld = Array('d', [0, 0, 0])
         #wins, losses, draws
         #run games concurrently
-        procs = [Process(target=ExperimentFuncs._exp3process, 
-                        args=(wld,)) 
-                        for i in range(num_games)]
-        for p in procs: p.start()
-        for p in procs: p.join()
-        print(exp_stats[(c, d)])
-        save_results(1, exp_stats)
+        # procs = [Process(target=ExperimentFuncs._exp3process, 
+        #                 args=(wld,)) 
+        #                 for i in range(num_games)]
+        # for p in procs: p.start()
+        # for p in procs: p.join()
+        save_ai_results(3, wld)
 
 
 def save_results(experiment_num, stats):
@@ -122,7 +120,7 @@ def save_ai_results(experiment_num, stats):
     contents = "W\tL\tD\n"
     with open("experiment{}.csv".format(experiment_num), "w+") as csv_file:
         for stat in stats: 
-            contents += stat + "\t"
+            contents += str(stat) + "\t"
         csv_file.write(contents)
 
 if __name__ == "__main__":
