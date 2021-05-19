@@ -70,7 +70,7 @@ class TimedMinmaxAgent(Agent):
     valid_moves = board.availible_moves_numpy()
     for i in range(valid_moves.shape[0]):
       made_move = (valid_moves[i,0], valid_moves[i,1], valid_moves[i,2], valid_moves[i,3])
-      board.move(made_move, -self.player)
+      board.move(made_move, self.player)
       move_val, min_move = self.minimize(board, a, b, depth-1, made_move)
 
       # maximize out of options
@@ -110,7 +110,7 @@ class TimedMinmaxAgent(Agent):
     valid_moves = board.availible_moves_numpy()
     for i in range(valid_moves.shape[0]):
       made_move = (valid_moves[i,0], valid_moves[i,1], valid_moves[i,2], valid_moves[i,3])
-      board.move(made_move, self.player)
+      board.move(made_move, -self.player)
       move_val, max_move = self.maximize(board, a, b, depth-1, made_move)
 
       # minimize out of options
