@@ -58,8 +58,9 @@ class TimedMinmaxAgent(Agent):
       return result_score, None
     # reached determined max depth
     elif depth == 0:
+      board_score = self.heuristic(board) * self.player
       board.undo_move(move)
-      return self.heuristic(board) * self.player, None
+      return board_score, None
 
     # not leaf node
     a, b = alpha, beta
@@ -97,8 +98,9 @@ class TimedMinmaxAgent(Agent):
       return result_score, None
     # reached determined max depth
     elif depth == 0:
+      board_score = self.heuristic(board) * self.player
       board.undo_move(move)
-      return self.heuristic(board) * self.player, None
+      return board_score, None
 
     # not leaf node
     a, b = alpha, beta
