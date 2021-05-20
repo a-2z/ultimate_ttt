@@ -21,7 +21,7 @@ class RandomAgent(Agent):
     return self.player
 
   def make_move(self, board):
-    potential_moves = board.availible_moves_numpy()
+    potential_moves = board.available_moves_numpy()
     choice = np.random.choice(potential_moves.shape[0], 1)[0]
     move = potential_moves[choice]
     board.move(move, self.player)
@@ -67,7 +67,7 @@ class TimedMinmaxAgent(Agent):
 
     best_val = float('-inf')
     best_move = None
-    valid_moves = board.availible_moves_numpy()
+    valid_moves = board.available_moves_numpy()
     for i in range(valid_moves.shape[0]):
       made_move = (valid_moves[i,0], valid_moves[i,1], valid_moves[i,2], valid_moves[i,3])
       board.move(made_move, self.player)
@@ -107,7 +107,7 @@ class TimedMinmaxAgent(Agent):
 
     best_val = float('inf')
     best_move = None
-    valid_moves = board.availible_moves_numpy()
+    valid_moves = board.available_moves_numpy()
     for i in range(valid_moves.shape[0]):
       made_move = (valid_moves[i,0], valid_moves[i,1], valid_moves[i,2], valid_moves[i,3])
       board.move(made_move, -self.player)
@@ -168,7 +168,7 @@ class TimedMCTSAgent(Agent):
     self.root = best_child
 
     if best_child == None:
-      potential_moves = board.availible_moves_numpy()
+      potential_moves = board.available_moves_numpy()
       choice = np.random.choice(potential_moves.shape[0], 1)[0]
       move = potential_moves[choice]
     else:
@@ -228,7 +228,7 @@ class Node():
       return self
     else:
       self.is_leaf = False
-      valid_moves = self.board.availible_moves_numpy()
+      valid_moves = self.board.available_moves_numpy()
       for i in range(valid_moves.shape[0]):
         child_player = -self.player
         child_board = self.board.copy()
@@ -242,7 +242,7 @@ class Node():
     board = self.board.copy()
     player = -self.player
     while board.result == 0:
-      valid_moves = board.availible_moves_numpy()
+      valid_moves = board.available_moves_numpy()
       player = -player
       choice = np.random.choice(valid_moves.shape[0], 1)[0]
       selected_move = valid_moves[choice]
