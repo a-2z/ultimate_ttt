@@ -1,4 +1,5 @@
 import numpy as np
+
 # 0 -> incomplete
 # 1 -> X win
 # -1 -> O win
@@ -12,13 +13,7 @@ class Board():
         self.result = 0
         self.next_board = (None, None)
 
-    def get_dimensions(self):
-        return self.dim 
-
     def copy(self):
-        """
-        Custom copying method
-        """
         new_board = Board(self.dim)
         new_board.board = np.copy(self.board)
         new_board.win_board = np.copy(self.win_board)
@@ -35,15 +30,64 @@ class Board():
             self.win_board[glob] = 0
             self.result = 0
 
-    def flatten_board(self, board):
+    def __str__(self, pretty_print=True) -> str:
+        """
+        Returns a string representation of the global board.
+        Parameter pretty_print: whether formatting should be added to the
+        global board to make it resemble 9 separate tic-tac-toe boards with
+        separators in between.
+        """
+        if pretty_print:
+            sep = "+---"
+            row = "| {} "
+            sep_clear = "+   "
+            clear = "    "
+            row_clear = "  {} "
+
+            multiplier = self.dim * self.dim
+
+            vfunc = np.vectorize(self._str_token)
+            board_rep = vfunc(self.board)
+            board_rep = self._mark_outcome(board_rep)
+
+            flat_board = self._flatten_board(board_rep)
+
+            unfilled = "\n".join(self.dim * ([multiplier * sep, self.dim * (row + (self.dim-1) * row_clear)] + (self.dim-1) * [self.dim * (sep_clear + (self.dim-1) * clear), self.dim * (row + (self.dim-1) * row_clear)]))
+            return unfilled.format(*list(flat_board))
+        else:
+            stringify = np.vectorize(UltimateTTT.str_token, otypes=[np.ndarray])
+            return str(stringify(self.board))
+
+    @ staticmethod
+    def _str_token(token: int) -> str:
+        """
+        Returns the string representation of a token.
+        """
+        if token == 0:
+            return " "
+        return "X" if token == 1 else "O"
+
+    def _mark_outcome(self, board_rep):
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if self.win_board[i,j] == -2:
+                    board_rep[i,j,:,:] = np.array([["|","-"," "],["|", " ", "]"],["|","-"," "]])
+                elif self.win_board[i,j] == 1:
+                    board_rep[i,j,:,:] = np.array([["\\"," ","/"],[" ", "X", " "],["/"," ","\\"]])
+                elif self.win_board[i,j] == -1:
+                    board_rep[i,j,:,:] = np.array([["/","-","\\"],["|", " ", "|"],["\\","-","/"]])
+        return board_rep
+
+    def _flatten_board(self, board):
         flat = np.zeros(0)
         for i in range(self.dim):
             for k in range(self.dim):
                 flat = np.concatenate((flat, board[i,:,k,:]), axis=None)
+
         return flat
 
     def twoD_rep(self):
-        return self.flatten_board(self.board).reshape((self.dim**2,self.dim**2))
+        return self._flatten_board(self.board).reshape((self.dim**2,self.dim**2))
 
     def get_outcome(self):
         return self.result
@@ -55,6 +99,7 @@ class Board():
         return np.copy(self.win_board)
 
     def compute_outcome(self, board):
+
         # check cols
         row_array = np.abs(np.sum(board, axis=0))
         max_idx = np.argmax(row_array)
@@ -83,7 +128,7 @@ class Board():
         return -2 if np.all(board) else 0
 
     def move(self, move_array, player):
-        globi, globj, loci, locj = move_array
+        globi, globj, loci, locj = move_array[0], move_array[1], move_array[2], move_array[3]
 
         self.board[globi, globj, loci, locj] = player
 
@@ -99,9 +144,9 @@ class Board():
 
         self.next_board = (loci, locj)
 
-    def available_moves_4d(self):
-        # all open spots on the board (legal or illegal)
-        available_moves = self.board == 0
+    def availible_moves_4d(self):
+        # all open spots on the board, not caring if a given local board can be legally played on
+        availible_moves = self.board == 0
 
         if self.next_board != (None,None):
             # a 3x3 zero matrix
@@ -117,10 +162,10 @@ class Board():
                 turn_to_zero = self.win_board != 0
 
             # set the value for local boards we can't legally play on to zero
-            available_moves[turn_to_zero.astype(bool)] = zero_board
+            availible_moves[turn_to_zero.astype(bool)] = zero_board
 
-        return available_moves
+        return availible_moves
 
-    def available_moves(self):
-        available_4d = self.available_moves_4d()
-        return np.argwhere(available_4d == 1)
+    def availible_moves_numpy(self):
+        availible_4d = self.availible_moves_4d()
+        return np.argwhere(availible_4d == 1)
