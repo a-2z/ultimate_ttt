@@ -1,35 +1,14 @@
 from board import *
-import re
 import numpy as np
 import time
 import random
 
 
 class Agent(object):
-    def __init__(self, player, name=None):
-        #defined player tokens
-        assert player in [-1, 1]
-        self.player = player
-        self.name = __class__.__name__ if not name else name
-
-    def get_name(self):
-        return self.name
-
     def get_player(self):
-        """
-        Returns which player 1 for x, -1 for o the agent is
-        """
-        return self.player
-
-    def random_move(self, board):
-        valid_moves = board.available_moves()
-        choice = np.random.choice(valid_moves.shape[0], 1)[0]
-        return valid_moves[choice]
-
-    def make_move(self, board):
         raise NotImplementedError
 
-    def pick_move(self, board):
+    def make_move(self, board):
         raise NotImplementedError
 
     def reset(self):
@@ -37,69 +16,33 @@ class Agent(object):
 
 
 class RandomAgent(Agent):
-    def make_move(self, board):
-        move = self.random_move(board)
-        board.move(move, self.player)
-        return move
-
-    def pick_move(self, board):
-        return self.random_move(board)
-
-class Human_Gui(Agent):
-    def __init__(self, player, name="Human"):
-        #defined player tokens
-        assert player in [-1, 1]
+    def __init__(self, player):
         self.player = player
-        self.name = name
-        self.has_moved = False
-        self.move = None
 
-    def pick_move(self, board):
-        while not self.has_moved:
-            #wait for someone change its attribute
-            continue
-        self.has_moved = False 
-        return self.move 
+    def get_player(self):
+        return self.player
 
-    def set_move(self, move):
-        self.move = move
-        self.has_moved = True   
-
-
-
-class Human(Agent):
     def make_move(self, board):
-        move = self.pick_move(board)
+        potential_moves = board.available_moves_numpy()
+        choice = np.random.choice(potential_moves.shape[0], 1)[0]
+        move = potential_moves[choice]
         board.move(move, self.player)
         return move
 
-    def pick_move(self, board):
-        raw = input("Please enter a move (4 coordinates): ")
-        legal_moves = board.available_moves()
-        dims = range(board.get_dimensions())
-        #assumes coordinates can only be one digit
-        coords = [int(c) for c in re.findall("[0-9]", raw) if int(c) in dims]
-        move = np.array(coords)
-        if not self.is_legal(move, board):
-            print("Illegal move")
-            self.pick_move(board)
-        return move
 
-    def is_legal(self, move, board):
-        """
-        checks if a move on a board is legal; assumed behavior for 
-        a human.
-        """
-        legal = board.available_moves()
-        return move.shape[0] == 4 and np.any(np.all(move == legal, axis=1))
+class HumanAgent(Agent):
+    def ++
+
 
 class TimedMinmaxAgent(Agent):
-    def __init__(self, player, max_time, end_value, heuristic, name="minmax"):
-        self.name = name
+    def __init__(self, player, max_time, end_value, heuristic):
         self.player = player
         self.max_time = max_time
         self.end_value = end_value
         self.heuristic = heuristic
+
+    def get_player(self):
+        return self.player
 
     def make_move(self, board):
         s_time = time.time()
@@ -113,22 +56,8 @@ class TimedMinmaxAgent(Agent):
         board.move(np.asarray(best_move), self.player)
         return best_move
 
-    def pick_move(self, board):
-        """
-        due to value, pick_move is not used in make_move
-        """
-        s_time = time.time()
-        depth = 0
-        while (time.time() - s_time) < self.max_time:
-            depth += 1
-            alpha = float("-inf")
-            beta = float("inf")
-            best_move = self.maximize(
-                board.copy(), alpha, beta, depth, None)[1]
-        return best_move
-
-
     def maximize(self, board, alpha, beta, depth, move):
+
         # leaf node
         # finished playthrough
         if board.result != 0:
@@ -146,7 +75,7 @@ class TimedMinmaxAgent(Agent):
 
         best_val = float('-inf')
         best_move = None
-        valid_moves = board.available_moves()
+        valid_moves = board.available_moves_numpy()
         for i in range(valid_moves.shape[0]):
             made_move = (valid_moves[i, 0], valid_moves[i, 1],
                          valid_moves[i, 2], valid_moves[i, 3])
@@ -188,7 +117,7 @@ class TimedMinmaxAgent(Agent):
 
         best_val = float('inf')
         best_move = None
-        valid_moves = board.available_moves()
+        valid_moves = board.available_moves_numpy()
         for i in range(valid_moves.shape[0]):
             made_move = (valid_moves[i, 0], valid_moves[i, 1],
                          valid_moves[i, 2], valid_moves[i, 3])
@@ -213,8 +142,7 @@ class TimedMinmaxAgent(Agent):
 
 
 class TimedMCTSAgent(Agent):
-    def __init__(self, player, max_time, c, name="MCTS"):
-        self.name = name
+    def __init__(self, player, max_time, c):
         self.player = player
         self.max_time = max_time
         self.c = c
@@ -224,11 +152,6 @@ class TimedMCTSAgent(Agent):
         return self.player
 
     def make_move(self, board):
-        move = self.pick_move(board)
-        board.move(move, self.player)
-        return move
-
-    def pick_move(self, board):
         time_s = time.time()
 
         if self.root is None:
@@ -259,9 +182,12 @@ class TimedMCTSAgent(Agent):
         self.root = best_child
 
         if best_child is None:
-            move = self.random_move(board)
+            potential_moves = board.available_moves_numpy()
+            choice = np.random.choice(potential_moves.shape[0], 1)[0]
+            move = potential_moves[choice]
         else:
             move = best_child.move
+        board.move(move, self.player)
         return move
 
     def reset(self):
@@ -282,11 +208,6 @@ class Node():
         self.visits = 0
         self.is_leaf = True
         self.children = []
-
-    def random_move(self, board):
-        valid_moves = board.available_moves()
-        choice = np.random.choice(valid_moves.shape[0], 1)[0]
-        return valid_moves[choice]
 
     def uct(self):
         if self.visits == 0:
@@ -322,7 +243,7 @@ class Node():
             return self
         else:
             self.is_leaf = False
-            valid_moves = self.board.available_moves()
+            valid_moves = self.board.available_moves_numpy()
             for i in range(valid_moves.shape[0]):
                 child_player = -self.player
                 child_board = self.board.copy()
@@ -338,8 +259,11 @@ class Node():
         player = -self.player
         while board.result == 0:
             player = -player
-            move = self.random_move(board)
-            board.move(move, player)
+            #select random legal move by index
+            valid_moves = board.available_moves_numpy()
+            choice = np.random.choice(valid_moves.shape[0], 1)[0]
+            selected_move = valid_moves[choice]
+            board.move(selected_move, player)
 
         self.backpropagate(board.result)
 

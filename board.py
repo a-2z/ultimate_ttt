@@ -1,4 +1,5 @@
 import numpy as np
+
 # 0 -> incomplete
 # 1 -> X win
 # -1 -> O win
@@ -11,9 +12,6 @@ class Board():
         self.win_board = np.zeros((self.dim, self.dim), dtype=np.int8)    
         self.result = 0
         self.next_board = (None, None)
-
-    def get_dimensions(self):
-        return self.dim 
 
     def copy(self):
         """
@@ -83,7 +81,7 @@ class Board():
         return -2 if np.all(board) else 0
 
     def move(self, move_array, player):
-        globi, globj, loci, locj = move_array
+        globi, globj, loci, locj = move_array[0], move_array[1], move_array[2], move_array[3]
 
         self.board[globi, globj, loci, locj] = player
 
@@ -121,6 +119,6 @@ class Board():
 
         return available_moves
 
-    def available_moves(self):
+    def available_moves_numpy(self):
         available_4d = self.available_moves_4d()
         return np.argwhere(available_4d == 1)
