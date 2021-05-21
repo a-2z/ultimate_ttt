@@ -14,9 +14,6 @@ class Board():
         self.next_board = (None, None)
 
     def copy(self):
-        """
-        Custom copying method
-        """
         new_board = Board(self.dim)
         new_board.board = np.copy(self.board)
         new_board.win_board = np.copy(self.win_board)
@@ -38,6 +35,7 @@ class Board():
         for i in range(self.dim):
             for k in range(self.dim):
                 flat = np.concatenate((flat, board[i,:,k,:]), axis=None)
+
         return flat
 
     def twoD_rep(self):
@@ -53,6 +51,7 @@ class Board():
         return np.copy(self.win_board)
 
     def compute_outcome(self, board):
+
         # check cols
         row_array = np.abs(np.sum(board, axis=0))
         max_idx = np.argmax(row_array)
@@ -98,7 +97,7 @@ class Board():
         self.next_board = (loci, locj)
 
     def available_moves_4d(self):
-        # all open spots on the board (legal or illegal)
+        # all open spots on the board, not caring if a given local board can be legally played on
         available_moves = self.board == 0
 
         if self.next_board != (None,None):
