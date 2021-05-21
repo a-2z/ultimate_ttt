@@ -30,7 +30,55 @@ class Board():
             self.win_board[glob] = 0
             self.result = 0
 
-    def flatten_board(self, board):
+    def __str__(self, pretty_print=True) -> str:
+        """
+        Returns a string representation of the global board.
+        Parameter pretty_print: whether formatting should be added to the
+        global board to make it resemble 9 separate tic-tac-toe boards with
+        separators in between.
+        """
+        if pretty_print:
+            sep = "+---"
+            row = "| {} "
+            sep_clear = "+   "
+            clear = "    "
+            row_clear = "  {} "
+
+            multiplier = self.dim * self.dim
+
+            vfunc = np.vectorize(self._str_token)
+            board_rep = vfunc(self.board)
+            board_rep = self._mark_outcome(board_rep)
+
+            flat_board = self._flatten_board(board_rep)
+
+            unfilled = "\n".join(self.dim * ([multiplier * sep, self.dim * (row + (self.dim-1) * row_clear)] + (self.dim-1) * [self.dim * (sep_clear + (self.dim-1) * clear), self.dim * (row + (self.dim-1) * row_clear)]))
+            return unfilled.format(*list(flat_board))
+        else:
+            stringify = np.vectorize(UltimateTTT.str_token, otypes=[np.ndarray])
+            return str(stringify(self.board))
+
+    @ staticmethod
+    def _str_token(token: int) -> str:
+        """
+        Returns the string representation of a token.
+        """
+        if token == 0:
+            return " "
+        return "X" if token == 1 else "O"
+
+    def _mark_outcome(self, board_rep):
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if self.win_board[i,j] == -2:
+                    board_rep[i,j,:,:] = np.array([["|","-"," "],["|", " ", "]"],["|","-"," "]])
+                elif self.win_board[i,j] == 1:
+                    board_rep[i,j,:,:] = np.array([["\\"," ","/"],[" ", "X", " "],["/"," ","\\"]])
+                elif self.win_board[i,j] == -1:
+                    board_rep[i,j,:,:] = np.array([["/","-","\\"],["|", " ", "|"],["\\","-","/"]])
+        return board_rep
+
+    def _flatten_board(self, board):
         flat = np.zeros(0)
         for i in range(self.dim):
             for k in range(self.dim):
@@ -39,7 +87,7 @@ class Board():
         return flat
 
     def twoD_rep(self):
-        return self.flatten_board(self.board).reshape((self.dim**2,self.dim**2))
+        return self._flatten_board(self.board).reshape((self.dim**2,self.dim**2))
 
     def get_outcome(self):
         return self.result
