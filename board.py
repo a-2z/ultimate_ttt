@@ -96,9 +96,9 @@ class Board():
 
         self.next_board = (loci, locj)
 
-    def available_moves_4d(self):
+    def availible_moves_4d(self):
         # all open spots on the board, not caring if a given local board can be legally played on
-        available_moves = self.board == 0
+        availible_moves = self.board == 0
 
         if self.next_board != (None,None):
             # a 3x3 zero matrix
@@ -114,10 +114,10 @@ class Board():
                 turn_to_zero = self.win_board != 0
 
             # set the value for local boards we can't legally play on to zero
-            available_moves[turn_to_zero.astype(bool)] = zero_board
+            availible_moves[turn_to_zero.astype(bool)] = zero_board
 
-        return available_moves
+        return availible_moves
 
-    def available_moves_numpy(self):
-        available_4d = self.available_moves_4d()
-        return np.argwhere(available_4d == 1)
+    def availible_moves_numpy(self):
+        availible_4d = self.availible_moves_4d()
+        return np.argwhere(availible_4d == 1)
