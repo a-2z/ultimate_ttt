@@ -1,7 +1,6 @@
 from board import *
 from agents import *
 from heuristics import *
-from gui import Gui
 import time
 
 def play_game(player1, player2, board):
